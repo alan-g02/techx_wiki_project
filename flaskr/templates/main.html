@@ -1,19 +1,14 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <head>
-        <!-- TODO(Checkpoint Requirement 3): Change the title and content of your wiki.-->
-        <title>AMA Wiki</title>
-    </head>
+    {% block head %}
+    <title>{% block title %}{% endblock %} - AMA WIKI</title>
+    {% endblock %}
 </head>
-
 <body>
-    <!-- TODO(Project 1): Implement routes. -->
-    <div>       
-        <!-- TODO(Checkpoint Requirement 3): Change the title and content of your wiki.-->
+    <div>
         <p>HOME PAGES SIGN IN ABOUT (Not working yet)</p>
     </div>
+    <div>{% block content %}{% endblock %}</div>
 </body>
-
 </html>

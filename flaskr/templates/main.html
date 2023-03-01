@@ -1,24 +1,14 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <head>
-        <!-- TODO(Checkpoint Requirement 3): Change the title and content of your wiki.-->
-        <title>AMA Wiki</title>
-    </head>
+    {% block head %}
+    <title>{% block title %}{% endblock %} - AMA WIKI</title>
+    {% endblock %}
 </head>
-
 <body>
-    <!-- TODO(Project 1): Implement routes. -->
-    <div>       
-        <!-- TODO(Checkpoint Requirement 3): Change the title and content of your wiki.-->
-        <h1>SpongeBob Square pants</h1>
-        <p>SpongeBob SquarePants (or simply SpongeBob) is an American animated comedy television series created by marine science educator and 
-            animator Stephen Hillenburg for Nickelodeon. It chronicles the adventures of the title character and his aquatic friends in the fictional 
-            underwater city of Bikini Bottom. The fifth-longest-running American animated series, its high popularity has made it a media franchise. 
-            It is the highest rated Nickelodeon series and the most profitable property for Paramount Consumer Products, generating over $13 billion in 
-            merchandising revenue as of 2019.[4]</p>
+    <div>
+        <p>HOME PAGES SIGN IN ABOUT (Not working yet)</p>
     </div>
+    <div>{% block content %}{% endblock %}</div>
 </body>
-
 </html>

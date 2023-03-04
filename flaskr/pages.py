@@ -1,5 +1,7 @@
-from flask import render_template
+from flask import render_template,send_file
+from flaskr import backend
 
+backend = backend.Backend()
 
 def make_endpoints(app):
 
@@ -10,5 +12,15 @@ def make_endpoints(app):
         # TODO(Checkpoint Requirement 2 of 3): Change this to use render_template
         # to render main.html on the home page.
         return render_template('home.html')
+        
 
-    # TODO(Project 1): Implement additional routes according to the project requirements.
+    @app.route("/images/<file_name>")
+    def images(file_name):
+        '''Returns a path/element/src for a file using the get_image method
+        
+        [IMPORTANT] Only png images supported. Lets try to only upload png images to the bucket.
+
+        Args:
+            file_name used to pass the value to get image, and used as a reference in route to support different images.
+        '''
+        return send_file(backend.get_image(file_name),mimetype='image/png')

@@ -1,7 +1,9 @@
 # TODO(Project 1): Implement Backend according to the requirements.
 from google.cloud import storage
-class Backend:
+from io import BytesIO
+from flask import Flask, send_file
 
+class Backend:
     def __init__(self):
         self.list_page_names = []
         
@@ -26,8 +28,6 @@ class Backend:
 
         return self.list_page_names
 
-
-
     def upload(self, bucket_name, source_file_name, destination_blob_name):
         """Uploads a file to the bucket."""
         # The ID of your GCS bucket
@@ -45,14 +45,28 @@ class Backend:
 
         return 
 
-
-
     def sign_up(self):
         pass
 
     def sign_in(self):
         pass
 
-    def get_image(self):
-        pass
+    def get_image(self,file_name):
+        '''Returns an image from the ama_wiki_content bucket, in the ama_images folder
+
+        Extracts a blob from the ama_wiki_content bucket that can be used as a route for an image to be rendered in html
+
+        Args:
+            file_name: used to complete the path required to find the image blob in the bucket.
+        
+        '''
+        storage_client = storage.Client()
+        bucket = storage_client.bucket('ama_wiki_content')
+        blob = bucket.blob('ama_images/' + file_name)
+
+        with blob.open("rb") as f:
+            return BytesIO(f.read())
+
+
+
 

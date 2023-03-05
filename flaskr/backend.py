@@ -8,7 +8,7 @@ class Backend:
     def get_wiki_page(self, name):
         pass
 
-    def get_all_page_names(self, bucket_name, blob_name):
+    def get_all_page_names(self, bucket_name, folder_name):
         """Write and read a blob from GCS using file-like IO"""
         # The ID of your GCS bucket
         # bucket_name = "your-bucket-name"
@@ -18,11 +18,10 @@ class Backend:
 
         storage_client = storage.Client()
         bucket = storage_client.bucket(bucket_name)
-        blob = bucket.blob(blob_name)
+        blobs = bucket.list_blobs(folder_name)
 
-        with blob.open("r") as f:
-            for name in f:
-                self.list_page_names.append(name)  
+        for blob in blobs:
+            self.list_page_names.append(blob.name)  
 
         return self.list_page_names
 

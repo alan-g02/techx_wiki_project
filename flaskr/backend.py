@@ -2,6 +2,7 @@
 from google.cloud import storage
 from io import BytesIO
 from flask import Flask, send_file
+from google.cloud.exceptions import NotFound
 
 class Backend:
     def __init__(self):
@@ -60,12 +61,16 @@ class Backend:
             file_name: used to complete the path required to find the image blob in the bucket.
         
         '''
-        storage_client = storage.Client()
-        bucket = storage_client.bucket('ama_wiki_content')
-        blob = bucket.blob('ama_images/' + file_name)
+        try :
+            storage_client = storage.Client()
+            bucket = storage_client.bucket('ama_wiki_content')
+            blob = bucket.blob('ama_images/' + file_name)
+        except:
+            return None
 
         with blob.open("rb") as f:
             return BytesIO(f.read())
+        
 
 
 

@@ -12,6 +12,14 @@ def make_endpoints(app):
         # TODO(Checkpoint Requirement 2 of 3): Change this to use render_template
         # to render main.html on the home page.
         return render_template('home.html')
+    
+    @app.route("/about")
+    def about():
+        return render_template('about.html')
+
+    @app.route('/upload')
+    def upload():
+        return render_template('upload.html')
 
     @app.route("/images/<file_name>")
     def images(file_name):

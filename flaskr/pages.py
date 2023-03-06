@@ -24,3 +24,11 @@ def make_endpoints(app):
             file_name used to pass the value to get image, and used as a reference in route to support different images.
         '''
         return send_file(backend.get_image(file_name),mimetype='image/png')
+
+    @app.route("/pages")
+    def pages():
+        return render_template('pages.html')
+
+    @app.route("/logout")
+    def logout():
+        return render_template('logout.html')

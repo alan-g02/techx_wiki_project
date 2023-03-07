@@ -5,6 +5,11 @@ PAGES
 {% endblock %}
 
 {% block content %}
-<p>Pages contained in this wiki</p>
-
+  <h1>Pages contained in this wiki</h1>
+ 
+  {% for pagename in pagenames %}
+      <p><a href="/page_results?current_page={{ pagename }}">{{ pagename }}</a></p>
+  {% endfor %}
 {% endblock %}
+
+

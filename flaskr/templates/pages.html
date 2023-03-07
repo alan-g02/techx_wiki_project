@@ -6,10 +6,14 @@ PAGES
 
 {% block content %}
   <h1>Pages contained in this wiki</h1>
- 
-  {% for pagename in pagenames %}
+  {% if pagenames != [] %}
+    {% for pagename in pagenames %}
       <p><a href="/page_results?current_page={{ pagename }}">{{ pagename }}</a></p>
-  {% endfor %}
+    {% endfor %}
+  {% else %}
+    <p>No pages to view yet!</p>
+  {% endif %}
+  
 {% endblock %}
 
 

@@ -1,4 +1,4 @@
-from flask import render_template,send_file,request
+from flask import render_template,send_file,request, redirect, url_for
 from flaskr import backend
 
 backend = backend.Backend()
@@ -15,6 +15,18 @@ def make_endpoints(app):
     @app.route('/upload')
     def upload():
         return render_template('upload.html')
+
+    @app.route('/signup', methods=['GET', 'POST'])
+    def signup():
+        if request.method == 'POST':
+            # Get the form data
+            username = request.form['username']
+            password = request.form['password']
+
+            #still waiting on signup in backend
+            return redirect(url_for('home'))
+        return render_template('signup.html')
+
 
     @app.route("/pages")
     def pages():

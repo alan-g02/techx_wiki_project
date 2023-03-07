@@ -6,10 +6,10 @@ from google.cloud.exceptions import NotFound
 
 class Backend:
     def __init__(self):
-        self.list_page_names = []
+        pass
         
     def get_wiki_page(self, name):
-        pass
+        return ''
 
     def get_all_page_names(self, bucket_name, folder_name):
         """Write and read a blob from GCS using file-like IO"""
@@ -18,15 +18,16 @@ class Backend:
 
         # The ID of your new GCS object
         # blob_name = "storage-object-name"
-
+        list_page_names = []
         storage_client = storage.Client()
         bucket = storage_client.bucket(bucket_name)
-        blobs = bucket.list_blobs(folder_name)
-
+        blobs = bucket.list_blobs(prefix=folder_name)
+        
         for blob in blobs:
-            self.list_page_names.append(blob.name)  
+            if not blob.name.endswith('/'):
+               list_page_names.append(blob.name)  
 
-        return self.list_page_names
+        return list_page_names
 
     def upload(self, bucket_name, source_file_name, destination_blob_name):
         """Uploads a file to the bucket."""

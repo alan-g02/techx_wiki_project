@@ -30,8 +30,8 @@ def make_endpoints(app):
 
     @app.route("/pages")
     def pages():
-        backend.get_all_page_names("ama_wiki_content", "pages")
-        return render_template('pages.html', pagenames=backend.list_page_names)
+        pages = backend.get_all_page_names("ama_wiki_content", "pages/")
+        return render_template('pages.html', pagenames=pages)
 
     
     @app.route("/page_results")    

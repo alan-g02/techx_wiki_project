@@ -8,8 +8,15 @@ class Backend:
     def __init__(self):
         pass
         
-    def get_wiki_page(self, name):
-        return ''
+     def get_wiki_page(self, file_name):
+        storage_client = storage.Client()
+        bucket_wikiPage = storage_client.bucket("ama_wiki_content")
+        blob = bucket_wikiPage.blob("pages/" +file_name)
+
+
+        with blob.open('r') as f:
+            return f.read()
+
 
     def get_all_page_names(self, bucket_name, folder_name):
         """Write and read a blob from GCS using file-like IO"""
@@ -46,8 +53,27 @@ class Backend:
 
         return 
 
-    def sign_up(self):
-        pass
+    def sign_up(self, username, password):
+        #Creating list of blobs (all_blobs) which holds a file for each username.
+        storage_client = storage.Client()
+        bucket = storage_client.bucket("ama_users_passwords")
+       
+        #setting cap for username length
+        if len(username) > 32:
+            raise Exception('Must be less than 33 characters')
+
+
+        #Opening list of blobs to read filenames to see if a file matches the username that was just inputted              
+        blob = bucket.blob(username)
+        if blob.exists():
+            raise Exception("Username is already taken")
+
+
+        else:
+        #hashing password and adding it to the username file that correlates with it
+            hashed_password = hashlib.sha256(password.encode()).hexdigest()
+            blob.upload_from_string(hashed_password)
+
 
     def sign_in(self):
         pass

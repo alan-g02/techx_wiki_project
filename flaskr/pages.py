@@ -38,7 +38,7 @@ def make_endpoints(app):
     def page_results():
         current_page = request.args.get('current_page')
         contents = backend.get_wiki_page(current_page)
-        return render_template('page_results.html', pagename = current_page, contents=contents)
+        return render_template('page_results.html', pagename = current_page[6:], contents=contents)
 
     @app.route("/logout")
     def logout():

@@ -82,16 +82,9 @@ def make_endpoints(app):
         elif input_value.strip() == '':
             # Input is empty
             return render_template('upload.html',status='empty')
+        elif file.content_type != 'text/plain':
+            # If not .txt
+            return render_template('upload.html',status='wrong_file')
         else:
-            # Input is not empty
-            #######################################################
-            # EXTREMELY IMPORTANT. Add this code later.
-            #   backend.upload('ama_wiki_content',file,input_value)
-            # Make sure all the arguments are correct.
-            # For reference:
-            #   The name of the bucket should be 'ama_wiki_content'
-            #   If there is a folder, please specify.
-            #   Input_value is the name of the blob to be uploaded. Cannot upload blob with no name.
-            #   If there is any other argument, please let Alan know for any questions.
-            #######################################################
+            backend.upload('ama_wiki_content',file,input_value,'text/plain')
             return render_template('upload.html',status='successful')

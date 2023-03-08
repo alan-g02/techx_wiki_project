@@ -1,4 +1,5 @@
 # TODO(Project 1): Implement Backend according to the requirements.
+import hashlib
 from google.cloud import storage
 from io import BytesIO
 from flask import Flask, send_file
@@ -11,7 +12,7 @@ class Backend:
     def get_wiki_page(self, file_name):
         storage_client = storage.Client()
         bucket_wikiPage = storage_client.bucket("ama_wiki_content")
-        blob = bucket_wikiPage.blob("pages/" +file_name)
+        blob = bucket_wikiPage.blob(file_name)
 
 
         with blob.open('r') as f:
@@ -36,7 +37,7 @@ class Backend:
 
         return list_page_names
 
-    def upload(self, bucket_name, source_file_name, destination_blob_name):
+    def upload(self, bucket_name, file, file_name,file_type):
         """Uploads a file to the bucket."""
         # The ID of your GCS bucket
         # bucket_name = "your-bucket-name"
@@ -47,10 +48,9 @@ class Backend:
 
         storage_client = storage.Client()
         bucket = storage_client.bucket(bucket_name)
-        blob = bucket.blob(destination_blob_name)
+        blob = bucket.blob('pages/' + file_name)
 
-        blob.upload_from_filename(source_file_name)
-
+        blob.upload_from_file(file,content_type=file_type)
         return 
 
     def sign_up(self, username, password):

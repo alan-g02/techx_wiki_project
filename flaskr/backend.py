@@ -8,7 +8,7 @@ class Backend:
     def __init__(self):
         pass
         
-     def get_wiki_page(self, file_name):
+    def get_wiki_page(self, file_name):
         storage_client = storage.Client()
         bucket_wikiPage = storage_client.bucket("ama_wiki_content")
         blob = bucket_wikiPage.blob("pages/" +file_name)

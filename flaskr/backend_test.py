@@ -1,5 +1,8 @@
 from flaskr.backend import Backend
 from unittest.mock import MagicMock,patch
+from unittest.mock import patch, mock_open
+from unittest import mock
+
 import pytest
 
 class test_list_blobs:
@@ -10,7 +13,7 @@ mock_client = MagicMock()
 bucket = MagicMock()
 blob = MagicMock()
 backend = Backend()
-
+file = MagicMock()
 
 
 @patch("google.cloud.storage.Client")
@@ -82,11 +85,18 @@ def test_sign_up_is_member(self, mock_storage):
 
 
 @patch("google.cloud.storage.Client")
-def test_get_wiki_page(mock_storage):
+def test_get_wiki_page(self,mock_storage):
     mock_storage.return_value = mock_client
     mock_client.bucket.return_value = bucket
-    bucket.blob.return_value = blob
+    blob = bucket.blob("/pages/file_name" )
+    file_content = "I am inside file"
+    mock_open = mock.mock_open(read_data = file_content)
 
+    blob.upload_from_file(mock_open)   #Upleoads blob to bucket
 
-    #testing mock to see if it's able to grab the wiki page.
-    backend.get_wiki_page("/pages" +bucket) #what do I do inside of this call???
+    with self.asserRaises:
+       backend.get_wiki_page("file_name")
+ 
+    
+
+    

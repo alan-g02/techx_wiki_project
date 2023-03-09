@@ -95,3 +95,21 @@ def make_endpoints(app):
             #   If there is any other argument, please let Alan know for any questions.
             #######################################################
             return render_template('upload.html',status='successful')
+
+    @app.route("/login", methods = ['GET', 'POST'])
+    def login():
+        username = request.form['username'] #requesting username 
+        password = request.form['password'] #requesting password
+        is_member = backend.sign_in(username,password) #making is_member variable that takes the grabbed username, password from backend.
+
+        #Checks to see if the username and password are in theblob and returns the specific login fucntion from html
+        if is_member:
+        #If person logging in is a member
+            return render_template('login.html', status = 'is_member')
+
+        #Checks to see if the username and password are not in the blob and returns the specific login fucntion from html
+        else:
+        #If Person logging in isn't a member
+            return render_template('login.html', status = 'not_member')
+
+        

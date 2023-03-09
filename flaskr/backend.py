@@ -1,4 +1,5 @@
 # TODO(Project 1): Implement Backend according to the requirements.
+import hashlib
 from google.cloud import storage
 from io import BytesIO
 from flask import Flask, send_file
@@ -9,11 +10,12 @@ class Backend:
         pass
         
     def get_wiki_page(self, file_name):
+        #Implimenting client/bucket/blob
         storage_client = storage.Client()
         bucket_wikiPage = storage_client.bucket("ama_wiki_content")
         blob = bucket_wikiPage.blob("pages/" +file_name)
 
-
+        #opening/reading blob as a file and returning the file inside of it.
         with blob.open('r') as f:
             return f.read()
 

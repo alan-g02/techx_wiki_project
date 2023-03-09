@@ -20,6 +20,9 @@ UPLOAD
 {% elif status == 'no_file' %}
 <p style="color: red;">Error. No file to upload</p>
 
+{% elif status == 'wrong_file' %}
+<p style="color: red;">Wrong file type</p>
+
 {% elif status == 'successful' %}
 <p>File Uploaded</p>
 

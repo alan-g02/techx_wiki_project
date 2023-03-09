@@ -10,11 +10,12 @@ class Backend:
         pass
         
     def get_wiki_page(self, file_name):
+        #Implementing client/bucket/blob
         storage_client = storage.Client()
         bucket_wikiPage = storage_client.bucket("ama_wiki_content")
-        blob = bucket_wikiPage.blob(file_name)
+        blob = bucket_wikiPage.blob("pages/" +file_name)
 
-
+        #opening/reading blob as a file and returning the file inside of it.
         with blob.open('r') as f:
             return f.read()
 
@@ -54,7 +55,7 @@ class Backend:
         return 
 
     def sign_up(self, username, password):
-        #Creating list of blobs (all_blobs) which holds a file for each username.
+        #Creating a list of blobs (all_blobs) which holds a file for each username.
         storage_client = storage.Client()
         bucket = storage_client.bucket("ama_users_passwords")
        
@@ -62,21 +63,31 @@ class Backend:
         if len(username) > 32:
             raise Exception('Must be less than 33 characters')
 
-
         #Opening list of blobs to read filenames to see if a file matches the username that was just inputted              
         blob = bucket.blob(username)
         if blob.exists():
             raise Exception("Username is already taken")
-
-
+        
         else:
         #hashing password and adding it to the username file that correlates with it
             hashed_password = hashlib.sha256(password.encode()).hexdigest()
             blob.upload_from_string(hashed_password)
 
 
-    def sign_in(self):
-        pass
+
+    def sign_in(self,username,password):
+        storage_client = storage.Client()
+        bucket = storage_client.bucket("ama_users_passwords")
+        blob = bucket.blob(username)
+        if blob.exists():
+            hashed_password = hashlib.sha256(password.encode()).hexdigest()
+            with blob.open("r") as f:
+                if f.read() == hashed_password:
+                    return True
+                else:
+                    return False
+        else:
+            return False
 
     def get_image(self,file_name):
         '''Returns an image from the ama_wiki_content bucket, in the ama_images folder

@@ -16,18 +16,6 @@ def make_endpoints(app):
     def upload():
         return render_template('upload.html')
 
-    @app.route('/signup', methods=['GET', 'POST'])
-    def signup():
-        if request.method == 'POST':
-            # Get the form data
-            username = request.form['username']
-            password = request.form['password']
-
-            #still waiting on signup in backend
-            return redirect(url_for('home'))
-        return render_template('signup.html')
-
-
     @app.route("/pages")
     def pages():
         pages = backend.get_all_page_names("ama_wiki_content", "pages/")

@@ -16,18 +16,6 @@ def make_endpoints(app):
     def upload():
         return render_template('upload.html')
 
-    @app.route('/signup', methods=['GET', 'POST'])
-    def signup():
-        if request.method == 'POST':
-            # Get the form data
-            username = request.form['username']
-            password = request.form['password']
-
-            #still waiting on signup in backend
-            return redirect(url_for('home'))
-        return render_template('signup.html')
-
-
     @app.route("/pages")
     def pages():
         pages = backend.get_all_page_names("ama_wiki_content", "pages/")
@@ -88,22 +76,3 @@ def make_endpoints(app):
         else:
             backend.upload('ama_wiki_content',file,input_value,'text/plain')
             return render_template('upload.html',status='successful')
-
-
-    @app.route("/login", methods = ['GET', 'POST'])
-    def login():
-        # username = request.form['username'] #requesting username
-        # password = request.form['password'] #requesting password
-        # is_member = backend.sign_in(username,password) #making is_member variable that takes the grabbed username, password from the backend.
-
-
-        #Checks to see if the username and password are in the blob and returns the specific login function from html
-        # if is_member:
-        #If person logging in is a member
-        return render_template('login.html', status = 'is_member')
-
-
-        #Checks to see if the username and password are not in the blob and returns the specific login function from html
-        # else:
-        #If Person logging in isn't a member
-            # return render_template('login.html', status = 'not_member')

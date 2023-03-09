@@ -75,8 +75,19 @@ class Backend:
 
 
 
-    def sign_in(self):
-        pass
+    def sign_in(self,username,password):
+        storage_client = storage.Client()
+        bucket = storage_client.bucket("ama_users_passwords")
+        blob = bucket.blob(username)
+        if blob.exists():
+            hashed_password = hashlib.sha256(password.encode()).hexdigest()
+            with blob.open("r") as f:
+                if f.read() == hashed_password:
+                    return True
+                else:
+                    return False
+        else:
+            return False
 
     def get_image(self,file_name):
         '''Returns an image from the ama_wiki_content bucket, in the ama_images folder

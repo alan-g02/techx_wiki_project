@@ -98,15 +98,14 @@ class Backend:
             file_name: used to complete the path required to find the image blob in the bucket.
         
         '''
-        try :
-            storage_client = storage.Client()
-            bucket = storage_client.bucket('ama_wiki_content')
-            blob = bucket.blob('ama_images/' + file_name)
-        except:
+        storage_client = storage.Client()
+        bucket = storage_client.bucket('ama_wiki_content')
+        blob = bucket.blob('ama_images/' + file_name)
+        if blob.exists():
+            with blob.open("rb") as f:
+                return BytesIO(f.read())
+        else:
             return None
-
-        with blob.open("rb") as f:
-            return BytesIO(f.read())
         
 
 

@@ -76,6 +76,14 @@ class Backend:
 
 
     def sign_in(self,username,password):
+        '''Returns a boolean if the user is found and the password matches.
+
+        Searches the ama_users_passwords bucket for a match with the parameters received.
+
+        Args:
+            username: used to search a specific blob in the ama_users_passwords bucket
+            password: used to compare to the value inside the username blob
+        '''
         storage_client = storage.Client()
         bucket = storage_client.bucket("ama_users_passwords")
         blob = bucket.blob(username)

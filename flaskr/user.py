@@ -33,24 +33,6 @@ def make_endpoints(app,login_manager):
                 return render_template('signup.html',status="used")
         return render_template('signup.html')
 
-    # @app.route("/login", methods = ['GET', 'POST'])
-    # def login():
-    #     # username = request.form['username'] #requesting username
-    #     # password = request.form['password'] #requesting password
-    #     # is_member = backend.sign_in(username,password) #making is_member variable that takes the grabbed username, password from the backend.
-
-
-    #     #Checks to see if the username and password are in the blob and returns the specific login function from html
-    #     # if is_member:
-    #     #If person logging in is a member
-    #     return render_template('login.html', status = 'is_member')
-
-
-    #     #Checks to see if the username and password are not in the blob and returns the specific login function from html
-    #     # else:
-    #     #If Person logging in isn't a member
-    #         # return render_template('login.html', status = 'not_member')
-
     @app.route("/login", methods=['GET','POST'])
     def login():
         if request.method == 'POST':
@@ -59,10 +41,9 @@ def make_endpoints(app,login_manager):
             password = request.form['password']
 
             #still waiting on signup in backend
-            if backend.sign_in(username,password,redirect): # Checks if the username and password are correct
+            if backend.sign_in(username,password): # Checks if the username and password are correct
                 user = User()
                 user.id = username
-                redirect = True
                 flask_login.login_user(user)
                 return render_template('login.html', status= "is_member")
             return render_template('login.html', status= "not_member")

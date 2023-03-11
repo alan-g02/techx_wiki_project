@@ -59,10 +59,13 @@ def make_endpoints(app,login_manager):
             password = request.form['password']
 
             #still waiting on signup in backend
-            if backend.sign_in(username,password): # Checks if the username and password are correct
+            if backend.sign_in(username,password,redirect): # Checks if the username and password are correct
                 user = User()
                 user.id = username
+                redirect = True
                 flask_login.login_user(user)
                 return render_template('login.html', status= "is_member")
             return render_template('login.html', status= "not_member")
         return render_template('login.html')
+
+

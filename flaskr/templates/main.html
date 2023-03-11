@@ -34,14 +34,22 @@
 </head>
 <body>
     <ul>
+        {% if current_user.is_authenticated %}        
         <li><a href="/">Home</a></li>
         <li><a href="/pages">Pages</a></li>
-        <li><a href="/signup">Sign Up</a></li>
-        <li><a href="/login">Login</a></li>
         <li><a href="/about">About</a></li>
         <li><a href="/upload">Upload</a></li>
         <li><a href="/logout">Logout</a></li>
-    </ul>   
+
+        {% else %}
+        <li><a href="/">Home</a></li>
+        <li><a href="/pages">Pages</a></li>
+        <li><a href="/about">About</a></li>      
+        <li><a href="/login">Login</a></li>          
+        <li><a href="/signup">Sign Up</a></li>
+        {% endif %}
+
+    </ul>           
     <div>{% block content %}{% endblock %}</div>   
 </body>
 </html>

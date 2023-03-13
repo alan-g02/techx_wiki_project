@@ -11,9 +11,11 @@ LOGIN
 {% block content %}
 <h1> Login </h1>
 <form method = "POST" action = "/login" >
-    <input type = "text" placeholder = "Username" name = "username" >
-    <input type = "text" placeholder = "Password" name = "password" >
-    <button type = "submit"> login </button>
+    <label for="username">Username:</label>
+    <input type = "text" placeholder = "Username" name = "username" required>
+    <label for="password">Password:</label>
+    <input type = "password" placeholder = "Password" name = "password" required>
+    <button type = "submit"> Login </button>
 </form>
 
 <!-- Statement if user isn't a member -->

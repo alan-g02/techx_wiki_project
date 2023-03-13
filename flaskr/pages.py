@@ -1,5 +1,6 @@
 from flask import render_template,send_file,request, redirect, url_for
 from flaskr import backend
+from flask_login import logout_user
 
 backend = backend.Backend()
 
@@ -30,6 +31,7 @@ def make_endpoints(app):
 
     @app.route("/logout")
     def logout():
+        logout_user()
         return render_template('logout.html')
 
 

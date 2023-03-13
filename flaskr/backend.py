@@ -13,7 +13,7 @@ class Backend:
         #Implementing client/bucket/blob
         storage_client = storage.Client()
         bucket_wikiPage = storage_client.bucket("ama_wiki_content")
-        blob = bucket_wikiPage.blob("pages/" +file_name)
+        blob = bucket_wikiPage.blob(file_name)
 
         #opening/reading blob as a file and returning the file inside of it.
         with blob.open('r') as f:
@@ -75,12 +75,20 @@ class Backend:
 
 
 
-    def sign_in(self,username,password):
-        storage_client = storage.Client()
+    def sign_in(self, username, password, storage_client=storage.Client(), hash=hashlib.sha256):
+        '''Returns a boolean if the user is found and the password matches.
+
+        Searches the ama_users_passwords bucket for a match with the parameters received.
+
+        Args:
+            username: used to search a specific blob in the ama_users_passwords bucket
+            password: used to compare to the value inside the username blob
+            storage_client: used to receive a mock storage client, default is normal storage client
+        '''
         bucket = storage_client.bucket("ama_users_passwords")
         blob = bucket.blob(username)
         if blob.exists():
-            hashed_password = hashlib.sha256(password.encode()).hexdigest()
+            hashed_password = hash(password.encode()).hexdigest()
             with blob.open("r") as f:
                 if f.read() == hashed_password:
                     return True
@@ -89,24 +97,32 @@ class Backend:
         else:
             return False
 
-    def get_image(self,file_name):
+    def get_image(self, file_name, storage_client=storage.Client(), bytes_io=BytesIO):
         '''Returns an image from the ama_wiki_content bucket, in the ama_images folder
 
         Extracts a blob from the ama_wiki_content bucket that can be used as a route for an image to be rendered in html
 
         Args:
             file_name: used to complete the path required to find the image blob in the bucket.
-        
-        '''
-        try :
-            storage_client = storage.Client()
-            bucket = storage_client.bucket('ama_wiki_content')
-            blob = bucket.blob('ama_images/' + file_name)
-        except:
-            return None
+            storage_client: used to accept mock storage client, default is normal storage client
+            bytes_io: used to accept mock bytes io class, default is normal BytesIO class
+                Example class
+                    class MockBytes:
+                        def __init__(self,data):
+                            self.data = data
+                        def read(self):
+                            return self.data
+        '''        
+        bucket = storage_client.bucket('ama_wiki_content')
+        blob = bucket.blob('ama_images/' + file_name)
 
-        with blob.open("rb") as f:
-            return BytesIO(f.read())
+        if blob.exists(): 
+            with blob.open("rb") as f:
+                return bytes_io(f.read())
+        else:
+            return None
+        
+
         
 
 

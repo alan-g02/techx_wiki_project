@@ -66,12 +66,13 @@ class Backend:
         #Opening list of blobs to read filenames to see if a file matches the username that was just inputted              
         blob = bucket.blob(username)
         if blob.exists():
-            raise Exception("Username is already taken")
+            return False
         
         else:
         #hashing password and adding it to the username file that correlates with it
             hashed_password = hashlib.sha256(password.encode()).hexdigest()
             blob.upload_from_string(hashed_password)
+            return True
 
 
 

@@ -6,6 +6,10 @@ HOME
 
 {% block content %}
 
-<p>Welcome to our wiki!</p>
+{%  if current_user.is_authenticated %}
+<p>Welcome to AMA Wiki {{ current_user.id }}!</p>
+{% else%}
+<p>Welcome to AMA Wiki!</p>
+{% endif %}
 
 {% endblock %}

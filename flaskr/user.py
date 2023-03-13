@@ -45,7 +45,7 @@ def make_endpoints(app,login_manager):
                 user = User()
                 user.id = username
                 flask_login.login_user(user)
-                return render_template('login.html', status= "is_member")
+                return render_template('login.html', status= "is_member", display_username = user.id)
             return render_template('login.html', status= "not_member")
         return render_template('login.html')
 

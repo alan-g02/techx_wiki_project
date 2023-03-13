@@ -13,7 +13,7 @@ class Backend:
         #Implementing client/bucket/blob
         storage_client = storage.Client()
         bucket_wikiPage = storage_client.bucket("ama_wiki_content")
-        blob = bucket_wikiPage.blob("pages/" +file_name)
+        blob = bucket_wikiPage.blob(file_name)
 
         #opening/reading blob as a file and returning the file inside of it.
         with blob.open('r') as f:

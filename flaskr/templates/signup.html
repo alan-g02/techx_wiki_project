@@ -14,7 +14,7 @@ SIGN-UP
     <button type="submit">Sign up</button>
     <!-- Statement if username already used -->
     {% if status == 'used' %}
-    <p style = "color: red;">Username already exists!</p>
+    <p style = "color: red;">Username already exists or username is too long</p>
     <p>Already Registered User? Click here to <a href="/login">login</a></p>
     {% else %}
     <p>Already Registered User? Click here to <a href="/login">login</a></p>

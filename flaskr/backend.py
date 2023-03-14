@@ -9,9 +9,8 @@ class Backend:
     def __init__(self):
         pass
         
-    def get_wiki_page(self, file_name):
-        #Implementing client/bucket/blob
-        storage_client = storage.Client()
+    def get_wiki_page(self, file_name, storage_client = storage.Client()):
+        #Implementing bucket/blob
         bucket_wikiPage = storage_client.bucket("ama_wiki_content")
         blob = bucket_wikiPage.blob(file_name)
 
@@ -54,24 +53,26 @@ class Backend:
         blob.upload_from_file(file,content_type=file_type)
         return 
 
-    def sign_up(self, username, password):
+    def sign_up(self, username, password, storage_client = storage.Client()):
         #Creating a list of blobs (all_blobs) which holds a file for each username.
-        storage_client = storage.Client()
         bucket = storage_client.bucket("ama_users_passwords")
        
         #setting cap for username length
         if len(username) > 32:
-            raise Exception('Must be less than 33 characters')
+            print('username too long')
+            return False
 
         #Opening list of blobs to read filenames to see if a file matches the username that was just inputted              
         blob = bucket.blob(username)
         if blob.exists():
+            print('username already exists')
             return False
         
         else:
         #hashing password and adding it to the username file that correlates with it
             hashed_password = hashlib.sha256(password.encode()).hexdigest()
             blob.upload_from_string(hashed_password)
+            print('user created successfully')
             return True
 
 

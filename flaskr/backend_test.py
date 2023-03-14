@@ -49,53 +49,60 @@ def test_get_all_page_nameslist(mock_storage):
     assert pagenames == ["pages/page"]    
 
 @patch("google.cloud.storage.Client")
-def test_sign_up(self, mock_storage):
-    mock_storage.return_value = mock_client #creating a mock to return client
-    mock_client.bucket.return_value = bucket #creating a mock to return bucket
-    bucket.blob.return_value = blob #creating mock to return blob
+def test_sign_up_success(mock_storage):
+    # Path: Username, does not exist, created sucessfully
+    # Creates Magic Mocks
+    my_client = MagicMock()
+    my_bucket = MagicMock()
+    my_blob = MagicMock()
+    backend = Backend()
 
+    mock_storage = my_client
+    my_client.bucket.return_value = my_bucket
+    my_bucket.blob.return_value = my_blob
+    my_blob.exists.return_value = False # Makes the function believe that the blob exists
 
-    backend.sign_up("username", "password") #calling the sign in function from back end taking in "username" for the username and "password" for the password
-    mock_client.bucket.assert_called_with("ama_users_passwords") #Checks to see if it's able to store mocked username/hashed password into the bucket
-
-
+    results = backend.sign_up('username','password',mock_storage)
+    assert results == True
+    
 @patch("google.cloud.storage.Client")
-def test_sign_up_username_length(self, mock_storage):
+def test_sign_up_username_length(mock_storage):
+    # Path: Username is too long, sign up unsucessful
     mock_storage.return_value = mock_client
     mock_client.bucket.return_value = bucket
     bucket.blob.return_value = blob
 
-
-    #assertion to check if the function for username being too long works
-    with self.asserRaises:
-        backend.sign_up("IAMASUPERLONGUSERNAMEANDIAMHUNGRYRIGHTNOW", "password")
+    assert backend.sign_up("usernameistoolong123456789123456789123456789123456789","passworddoesntmatter",mock_storage) == False
 
 
 @patch("google.cloud.storage.Client")
-def test_sign_up_is_member(self, mock_storage):
+def test_sign_up_is_member(mock_storage):
+    # Path: User already exists
     mock_storage.return_value = mock_client
     mock_client.bucket.return_value = bucket
     bucket.blob.return_value = blob
-    blob.exists.return_value = True #Tells blob that it exists already
+    blob.exists.return_value = True # Forces the return value of exists() to be true, for path purposes
 
-
-    #assertion to check the function of a username already being in use
-    with self.asserRaises:
-        backend.sign_up("username", "password")
+    assert backend.sign_up("useralreadyexists","passworddoesntmatter",mock_storage) == False
 
 
 @patch("google.cloud.storage.Client")
-def test_get_wiki_page(self,mock_storage):
-    mock_storage.return_value = mock_client
-    mock_client.bucket.return_value = bucket
-    blob = bucket.blob("/pages/file_name" )
-    file_content = "I am inside file"
-    mock_open = mock.mock_open(read_data = file_content)
+def test_get_wiki_page(mock_storage):
+    my_client = MagicMock()
+    my_bucket = MagicMock()
+    my_blob = MagicMock()
+    backend = Backend()
 
-    blob.upload_from_file(mock_open)   #Upleoads blob to bucket
+    mock_storage = my_client
+    my_client.bucket.return_value = my_bucket
+    my_bucket.blob.return_value = my_blob
 
-    with self.asserRaises:
-       backend.get_wiki_page("file_name")
+    my_image_data = "Contents of the file"
+    my_blob.open = mock_open(read_data=my_image_data)
+
+    results = backend.get_wiki_page('my_image_name',
+                                mock_storage)
+    assert results == "Contents of the file"
 
 @patch("google.cloud.storage.Client")
 def test_get_image_succeeds(mock_storage):

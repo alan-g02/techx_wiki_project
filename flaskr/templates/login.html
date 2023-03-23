@@ -11,18 +11,24 @@ LOGIN
 {% block content %}
 <h1> Login </h1>
 <form method = "POST" action = "/login" >
-    <input type = "text" placeholder = "Username" name = "username" >
-    <input type = "text" placeholder = "Password" name = "password" >
-    <button type = "submit"> login </button>
+    <label for="username">Username:</label>
+    <input type = "text" placeholder = "Username" name = "username" required>
+    <label for="password">Password:</label>
+    <input type = "password" placeholder = "Password" name = "password" required>
+    <button type = "submit"> Login </button>
 </form>
 
 <!-- Statement if user isn't a member -->
 {% if status == 'not_member' %}
 <p style = "color: red;">Incorrect username or password!</p>
+<p>Not a registered user? Click here to <a href="/signup">Sign Up</a></p>
 
 <!-- Statement if user is member  -->
 {% elif status == 'is_member' %}
- <p style = "color: rgb(207, 69, 207);"> Welcome {{display_username}} </p>  
+ <p style = "color: rgb(207, 69, 207);"> Welcome {{display_username}}! </p>  
+
+{% else %}
+<p>Not a registered user? Click here to <a href="/signup">Sign Up</a></p>
 {% endif %}
 
 

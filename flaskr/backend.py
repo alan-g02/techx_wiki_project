@@ -5,11 +5,13 @@ from io import BytesIO
 from flask import Flask, send_file
 from google.cloud.exceptions import NotFound
 
+
 class Backend:
+
     def __init__(self):
         pass
-        
-    def get_wiki_page(self, file_name, storage_client = storage.Client()):
+
+    def get_wiki_page(self, file_name, storage_client=storage.Client()):
         #Implementing bucket/blob
         bucket_wikiPage = storage_client.bucket("ama_wiki_content")
         blob = bucket_wikiPage.blob(file_name)
@@ -17,7 +19,6 @@ class Backend:
         #opening/reading blob as a file and returning the file inside of it.
         with blob.open('r') as f:
             return f.read()
-
 
     def get_all_page_names(self, bucket_name, folder_name):
         """Write and read a blob from GCS using file-like IO"""
@@ -30,14 +31,14 @@ class Backend:
         storage_client = storage.Client()
         bucket = storage_client.bucket(bucket_name)
         blobs = bucket.list_blobs(prefix=folder_name)
-        
+
         for blob in blobs:
             if not blob.name.endswith('/'):
-               list_page_names.append(blob.name)  
+                list_page_names.append(blob.name)
 
         return list_page_names
 
-    def upload(self, bucket_name, file, file_name,file_type):
+    def upload(self, bucket_name, file, file_name, file_type):
         """Uploads a file to the bucket."""
         # The ID of your GCS bucket
         # bucket_name = "your-bucket-name"
@@ -50,34 +51,36 @@ class Backend:
         bucket = storage_client.bucket(bucket_name)
         blob = bucket.blob('pages/' + file_name)
 
-        blob.upload_from_file(file,content_type=file_type)
-        return 
+        blob.upload_from_file(file, content_type=file_type)
+        return
 
-    def sign_up(self, username, password, storage_client = storage.Client()):
+    def sign_up(self, username, password, storage_client=storage.Client()):
         #Creating a list of blobs (all_blobs) which holds a file for each username.
         bucket = storage_client.bucket("ama_users_passwords")
-       
+
         #setting cap for username length
         if len(username) > 32:
             print('username too long')
             return False
 
-        #Opening list of blobs to read filenames to see if a file matches the username that was just inputted              
+        #Opening list of blobs to read filenames to see if a file matches the username that was just inputted
         blob = bucket.blob(username)
         if blob.exists():
             print('username already exists')
             return False
-        
+
         else:
-        #hashing password and adding it to the username file that correlates with it
+            #hashing password and adding it to the username file that correlates with it
             hashed_password = hashlib.sha256(password.encode()).hexdigest()
             blob.upload_from_string(hashed_password)
             print('user created successfully')
             return True
 
-
-
-    def sign_in(self, username, password, storage_client=storage.Client(), hash=hashlib.sha256):
+    def sign_in(self,
+                username,
+                password,
+                storage_client=storage.Client(),
+                hash=hashlib.sha256):
         '''Returns a boolean if the user is found and the password matches.
 
         Searches the ama_users_passwords bucket for a match with the parameters received.
@@ -99,7 +102,10 @@ class Backend:
         else:
             return False
 
-    def get_image(self, file_name, storage_client=storage.Client(), bytes_io=BytesIO):
+    def get_image(self,
+                  file_name,
+                  storage_client=storage.Client(),
+                  bytes_io=BytesIO):
         '''Returns an image from the ama_wiki_content bucket, in the ama_images folder
 
         Extracts a blob from the ama_wiki_content bucket that can be used as a route for an image to be rendered in html
@@ -114,19 +120,12 @@ class Backend:
                             self.data = data
                         def read(self):
                             return self.data
-        '''        
+        '''
         bucket = storage_client.bucket('ama_wiki_content')
         blob = bucket.blob('ama_images/' + file_name)
 
-        if blob.exists(): 
+        if blob.exists():
             with blob.open("rb") as f:
                 return bytes_io(f.read())
         else:
             return None
-        
-
-        
-
-
-
-

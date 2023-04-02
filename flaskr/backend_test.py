@@ -1,13 +1,16 @@
 from flaskr.backend import Backend
-from unittest.mock import MagicMock,patch
+from unittest.mock import MagicMock, patch
 from unittest.mock import patch, mock_open
 from unittest import mock
 
 import pytest
 
+
 class test_list_blobs:
-    def __init__(self,name):
+
+    def __init__(self, name):
         self.name = name
+
 
 mock_client = MagicMock()
 bucket = MagicMock()
@@ -20,22 +23,23 @@ file = MagicMock()
 def test_upload(mock_storage):
     mock_storage.return_value = mock_client
     mock_client.bucket.return_value = bucket
-    bucket.blob.return_value = blob  
+    bucket.blob.return_value = blob
 
-    backend.upload("wiki","test_file","page",".txt")
+    backend.upload("wiki", "test_file", "page", ".txt")
     mock_client.bucket.assert_called_with("wiki")
     bucket.blob.assert_called_with("pages/page")
-    blob.upload_from_file.assert_called_with("test_file",content_type=".txt")
+    blob.upload_from_file.assert_called_with("test_file", content_type=".txt")
 
 
 @patch("google.cloud.storage.Client")
 def test_get_all_page_names(mock_storage):
     mock_storage.return_value = mock_client
-    mock_client.bucket.return_value = bucket   
+    mock_client.bucket.return_value = bucket
 
     backend.get_all_page_names("wiki", "pages")
     mock_client.bucket.assert_called_with("wiki")
     bucket.list_blobs.assert_called_with(prefix="pages")
+
 
 @patch("google.cloud.storage.Client")
 def test_get_all_page_nameslist(mock_storage):
@@ -43,10 +47,11 @@ def test_get_all_page_nameslist(mock_storage):
     mock_client.bucket.return_value = bucket
     test_page1 = test_list_blobs("pages/")
     test_page2 = test_list_blobs("pages/page")
-    bucket.list_blobs.return_value = [test_page1,test_page2]
+    bucket.list_blobs.return_value = [test_page1, test_page2]
 
     pagenames = backend.get_all_page_names("wiki", "pages")
-    assert pagenames == ["pages/page"]    
+    assert pagenames == ["pages/page"]
+
 
 @patch("google.cloud.storage.Client")
 def test_sign_up_success(mock_storage):
@@ -60,11 +65,12 @@ def test_sign_up_success(mock_storage):
     mock_storage = my_client
     my_client.bucket.return_value = my_bucket
     my_bucket.blob.return_value = my_blob
-    my_blob.exists.return_value = False # Makes the function believe that the blob exists
+    my_blob.exists.return_value = False  # Makes the function believe that the blob exists
 
-    results = backend.sign_up('username','password',mock_storage)
+    results = backend.sign_up('username', 'password', mock_storage)
     assert results == True
-    
+
+
 @patch("google.cloud.storage.Client")
 def test_sign_up_username_length(mock_storage):
     # Path: Username is too long, sign up unsucessful
@@ -72,7 +78,9 @@ def test_sign_up_username_length(mock_storage):
     mock_client.bucket.return_value = bucket
     bucket.blob.return_value = blob
 
-    assert backend.sign_up("usernameistoolong123456789123456789123456789123456789","passworddoesntmatter",mock_storage) == False
+    assert backend.sign_up(
+        "usernameistoolong123456789123456789123456789123456789",
+        "passworddoesntmatter", mock_storage) == False
 
 
 @patch("google.cloud.storage.Client")
@@ -81,9 +89,10 @@ def test_sign_up_is_member(mock_storage):
     mock_storage.return_value = mock_client
     mock_client.bucket.return_value = bucket
     bucket.blob.return_value = blob
-    blob.exists.return_value = True # Forces the return value of exists() to be true, for path purposes
+    blob.exists.return_value = True  # Forces the return value of exists() to be true, for path purposes
 
-    assert backend.sign_up("useralreadyexists","passworddoesntmatter",mock_storage) == False
+    assert backend.sign_up("useralreadyexists", "passworddoesntmatter",
+                           mock_storage) == False
 
 
 @patch("google.cloud.storage.Client")
@@ -100,9 +109,9 @@ def test_get_wiki_page(mock_storage):
     my_image_data = "Contents of the file"
     my_blob.open = mock_open(read_data=my_image_data)
 
-    results = backend.get_wiki_page('my_image_name',
-                                mock_storage)
+    results = backend.get_wiki_page('my_image_name', mock_storage)
     assert results == "Contents of the file"
+
 
 @patch("google.cloud.storage.Client")
 def test_get_image_succeeds(mock_storage):
@@ -112,6 +121,7 @@ def test_get_image_succeeds(mock_storage):
     Removes dependencies: storage client, bucket, blob, and bytesio
 
     '''
+
     class MockBytes:
         '''Mocks the class of BytesIO
 
@@ -120,8 +130,10 @@ def test_get_image_succeeds(mock_storage):
         Attributes:
             data: saves data when initializing the object
         '''
-        def __init__(self,data):
+
+        def __init__(self, data):
             self.data = data
+
         def read(self):
             '''
             Returns the attribute data in the class
@@ -139,7 +151,7 @@ def test_get_image_succeeds(mock_storage):
     mock_storage = my_client
     my_client.bucket.return_value = my_bucket
     my_bucket.blob.return_value = my_blob
-    my_blob.exists.return_value = True # Makes the function believe that the blob exists
+    my_blob.exists.return_value = True  # Makes the function believe that the blob exists
 
     # Creates a mock image with binary data
     my_image_data = b"This is an image"
@@ -148,12 +160,11 @@ def test_get_image_succeeds(mock_storage):
     my_blob.open = mock_open(read_data=my_image_data)
 
     # Returns a bytesio object, in this case, the mock bytes io object.
-    results = backend.get_image('my_image_name',
-                                mock_storage,
-                                MockBytes)
+    results = backend.get_image('my_image_name', mock_storage, MockBytes)
 
     # Calls the method read() inside the mock bytesio object returned from get_image()
-    assert results.read() == my_image_data 
+    assert results.read() == my_image_data
+
 
 @patch("google.cloud.storage.Client")
 def test_get_image_fail(mock_storage):
@@ -163,14 +174,17 @@ def test_get_image_fail(mock_storage):
     Removes dependencies: storage client, bucket, blob, and bytesio
 
     '''
+
     class MockBytes:
         '''Mocks the class of BytesIO with similar needed methods.
 
         Attributes:
             data: saves data when initializing the object
         '''
-        def __init__(self,data):
+
+        def __init__(self, data):
             self.data = data
+
         def read(self):
             # Returns the attribute data in the class
             return self.data
@@ -186,7 +200,7 @@ def test_get_image_fail(mock_storage):
     mock_storage = my_client
     my_client.bucket.return_value = my_bucket
     my_bucket.blob.return_value = my_blob
-    my_blob.exists.return_value = False # Makes the function believe that the blob does not exist
+    my_blob.exists.return_value = False  # Makes the function believe that the blob does not exist
 
     # Creates a mock image with binary data
     my_image_data = b"This is an image"
@@ -195,12 +209,11 @@ def test_get_image_fail(mock_storage):
     my_blob.open = mock_open(read_data=my_image_data)
 
     # Returns a bytesio object, in this case, the mock bytes io object.
-    results = backend.get_image('my_image_name',
-                                mock_storage,
-                                MockBytes)
+    results = backend.get_image('my_image_name', mock_storage, MockBytes)
 
     # Since the blob does not exist, it returns None
     assert results == None
+
 
 @patch("google.cloud.storage.Client")
 def test_sign_in_found_match(mock_storage):
@@ -210,15 +223,17 @@ def test_sign_in_found_match(mock_storage):
     Path: User blob exists, password in blob and password match.
     Removes dependencies: storage client, bucket, blob, and hashlib
     '''
+
     class Hash:
         '''Mocks the hashlib.sha256 class with similar needed methods.
 
         Attributes:
             data: used to store a string
         '''
-        def __init__(self,data):
+
+        def __init__(self, data):
             self.data = data.decode()
-        
+
         def hexdigest(self):
             return self.data
 
@@ -233,18 +248,16 @@ def test_sign_in_found_match(mock_storage):
     mock_storage = my_client
     my_client.bucket.return_value = my_bucket
     my_bucket.blob.return_value = my_blob
-    my_blob.exists.return_value = True # Makes the function believe that the blob exists
+    my_blob.exists.return_value = True  # Makes the function believe that the blob exists
 
-    password = "password123" # Same as the input in the method
+    password = "password123"  # Same as the input in the method
 
     # Sets blob open value of read to password
     my_blob.open = mock_open(read_data=password)
 
-    result = backend.sign_in("user123",
-                            "password123",
-                            mock_storage,
-                            Hash)
+    result = backend.sign_in("user123", "password123", mock_storage, Hash)
     assert result == True
+
 
 @patch("google.cloud.storage.Client")
 def test_sign_in_found_nomatch(mock_storage):
@@ -254,15 +267,17 @@ def test_sign_in_found_nomatch(mock_storage):
     Path: User blob exists, password in blob and password do not match.
     Removes dependencies: storage client, bucket, blob, and hashlib
     '''
+
     class Hash:
         '''Mocks the hashlib.sha256 class with similar needed methods.
 
         Attributes:
             data: used to store a string
         '''
-        def __init__(self,data):
+
+        def __init__(self, data):
             self.data = data.decode()
-        
+
         def hexdigest(self):
             return self.data
 
@@ -277,18 +292,16 @@ def test_sign_in_found_nomatch(mock_storage):
     mock_storage = my_client
     my_client.bucket.return_value = my_bucket
     my_bucket.blob.return_value = my_blob
-    my_blob.exists.return_value = True # Makes the function believe that the blob exists
+    my_blob.exists.return_value = True  # Makes the function believe that the blob exists
 
-    password = "pass123" # Not the same as the input in the method
+    password = "pass123"  # Not the same as the input in the method
 
     # Sets blob open value of read to password
     my_blob.open = mock_open(read_data=password)
 
-    result = backend.sign_in("user123",
-                            "pass321",
-                            mock_storage,
-                            Hash)
+    result = backend.sign_in("user123", "pass321", mock_storage, Hash)
     assert result == False
+
 
 @patch("google.cloud.storage.Client")
 def test_sign_in_not_found(mock_storage):
@@ -299,15 +312,17 @@ def test_sign_in_not_found(mock_storage):
     Does not matter if password and and input match, user does not exist.
     Removes dependencies: storage client, bucket, blob, and hashlib
     '''
+
     class Hash:
         '''Mocks the hashlib.sha256 class with similar needed methods.
 
         Attributes:
             data: used to store a string
         '''
-        def __init__(self,data):
+
+        def __init__(self, data):
             self.data = data.decode()
-        
+
         def hexdigest(self):
             return self.data
 
@@ -322,18 +337,12 @@ def test_sign_in_not_found(mock_storage):
     mock_storage = my_client
     my_client.bucket.return_value = my_bucket
     my_bucket.blob.return_value = my_blob
-    my_blob.exists.return_value = False # Makes the function believe that the blob exists
+    my_blob.exists.return_value = False  # Makes the function believe that the blob exists
 
     password = "password123"
 
     # Sets blob open value of read to password
     my_blob.open = mock_open(read_data=password)
 
-    result = backend.sign_in("user123",
-                            "password123",
-                            mock_storage,
-                            Hash)
+    result = backend.sign_in("user123", "password123", mock_storage, Hash)
     assert result == False
-    
-    
-    

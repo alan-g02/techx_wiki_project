@@ -1,0 +1,7 @@
+lint:
+ stage: <stage_name>
+ script:
+ - pip install yapf
+ - yapf --recursive --diff --style google .
+ only:
+ - pushes

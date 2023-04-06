@@ -13,7 +13,11 @@ def make_endpoints(app):
 
     @app.route("/about")
     def about():
-        return render_template('about.html')
+        return render_template('about.html',open_img=False)
+        
+    @app.route("/open_image/<url>")
+    def open_image(url):
+        return render_template('about.html',open_img=True,image_url=url)
 
     @app.route('/upload')
     def upload():

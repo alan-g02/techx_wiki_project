@@ -13,14 +13,26 @@ ABOUT
 <h3>Your Authors</h3>
 
 <p> Myles Moody </p>
-<img class="preset_img" src="images/myles.png" width="300" height="300" alt="myles.png missing, please add manually, buckets/ama_wiki_contents/ama_images">
+<a href="/open_image/myles.png">
+    <img class="preset_img" src="/images/myles.png" width="300" height="300" alt="myles.png missing, please add manually, buckets/ama_wiki_contents/ama_images">
+</a>
 
 <p> Akwesi Peasare </p>
-<img class="preset_img" src="images/akwesi.png" width="300" height="300" alt="akwesi.png missing, please add manually, buckets/ama_wiki_contents/ama_images">
+<a href="/open_image/akwesi.png">
+    <img class="preset_img" src="/images/akwesi.png" width="300" height="300" alt="akwesi.png missing, please add manually, buckets/ama_wiki_contents/ama_images">
+</a>
 
 <p> Alan Gonzalez </p>
-<img class="preset_img" src="images/alan.png" width="300" height="300" alt="alan.png missing, please add manually, buckets/ama_wiki_contents/ama_images">
+<a href="/open_image/alan.png">
+    <img class="preset_img" src="/images/alan.png" width="300" height="300" alt="alan.png missing, please add manually, buckets/ama_wiki_contents/ama_images">
+</a>
 
+{% if open_img %}
+    <div class="fullscreen_img_background">
+        <a href="/about" class="exit_button">X</a>
+        <img class="fullscreen_img" src="/images/{{ image_url }}" alt="{{ image_url }} missing, please add manually, buckets/ama_wiki_contents/ama_images">
+    </div>
+{% endif %}
 {% endblock %}
 
 

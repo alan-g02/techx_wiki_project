@@ -7,6 +7,8 @@ PAGE RESULTS
 {% block content %}
 <h1>{{ pagename }}</h1>
 
+{% autoescape false %}
 <p> {{ contents }}</p>
+{% endautoescape %}
 
 {% endblock %}

@@ -4,6 +4,7 @@ from google.cloud import storage
 from io import BytesIO
 from flask import Flask, send_file
 from google.cloud.exceptions import NotFound
+from bs4 import BeautifulSoup
 
 
 class Backend:
@@ -39,20 +40,29 @@ class Backend:
         return list_page_names
 
     def upload(self, bucket_name, file, file_name, file_type):
-        """Uploads a file to the bucket."""
-        # The ID of your GCS bucket
-        # bucket_name = "your-bucket-name"
-        # The path to your file to upload
-        # source_file_name = "local/path/to/file"
-        # The ID of your GCS object
-        # destination_blob_name = "storage-object-name"
+        """
+        Uploads a file to the bucket.
 
+        Args:
+            bucket_name: The name of the GCS bucket to upload to.
+            file: The file object to upload.
+            file_name: The name to give the uploaded file.
+            file_type: The content type of the uploaded file.
+        """
+        # Read the contents fo the file into a byte string
+        file_contents = file.read()
+
+        # Sanitze any HTML tags in the file contents
+        clean_content = BeautifulSoup(file_contents,'html.parser',from_encoding='utf-8').get_text()
+
+        # Create a GCS client and get the bucket
         storage_client = storage.Client()
         bucket = storage_client.bucket(bucket_name)
-        blob = bucket.blob('pages/' + file_name)
 
-        blob.upload_from_file(file, content_type=file_type)
-        return
+        # Create a blob for the file and upload it to the bucket
+        blob = bucket.blob('pages/' + file_name)
+        blob.upload_from_string(clean_content, content_type=file_type)
+
 
     def sign_up(self, username, password, storage_client=storage.Client()):
         #Creating a list of blobs (all_blobs) which holds a file for each username.

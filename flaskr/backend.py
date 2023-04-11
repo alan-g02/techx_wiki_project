@@ -55,19 +55,17 @@ class Backend:
         blob.upload_from_file(file, content_type=file_type)
         return
 
-    def sign_up(self, username, password, storage_client=storage.Client()):
+    def sign_up(self, username, password, storage_client=storage.Client(), json_module=json):
         #Creating a list of blobs (all_blobs) which holds a file for each username.
         bucket = storage_client.bucket("ama_users_passwords")
 
         #setting cap for username length
         if len(username) > 32:
-            print('username too long')
             return False
 
         #Opening list of blobs to read filenames to see if a file matches the username that was just inputted
         blob = bucket.blob(username)
         if blob.exists():
-            print('username already exists')
             return False
 
         else:
@@ -79,18 +77,17 @@ class Backend:
                 "pages_uploaded" : [] 
                 }
 
-            json_data = json.dumps(user_data)
+            json_data = json_module.dumps(user_data)
             blob.upload_from_string(json_data,content_type="application/json")
-            print('user created successfully')
             return True
 
-    def get_user_key(self, username, storage_client=storage.Client()):
+    def get_user_key(self, username, storage_client=storage.Client(), json_module=json):
         bucket = storage_client.bucket('ama_users_passwords')
         blob = bucket.blob(username)
         if blob.exists():
             map = {}
             with blob.open('r') as b:
-                map = json.loads(b.read())
+                map = json_module.loads(b.read())
             return map['key']
         else:
             return None
@@ -99,7 +96,8 @@ class Backend:
                 username,
                 password,
                 storage_client=storage.Client(),
-                hash=hashlib.sha256):
+                hash=hashlib.sha256,
+                get_key=get_user_key):
         '''Returns a boolean if the user is found and the password matches.
 
         Searches the ama_users_passwords bucket for a match with the parameters received.
@@ -113,7 +111,7 @@ class Backend:
         blob = bucket.blob(username)
         if blob.exists():
             hashed_password = hash(password.encode()).hexdigest()
-            key = self.get_user_key(username)
+            key = get_key(username)
             if key == hashed_password:
                 return True
             else:

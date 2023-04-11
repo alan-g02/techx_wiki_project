@@ -55,28 +55,34 @@ def test_get_all_page_nameslist(mock_storage):
 
 @patch("google.cloud.storage.Client")
 def test_sign_up_success(mock_storage):
-    # Path: Username, does not exist, created sucessfully
+    # Path: Username does not exist, created sucessfully
     # Creates Magic Mocks
-    my_client = MagicMock()
     my_bucket = MagicMock()
     my_blob = MagicMock()
+    mock_json = MagicMock()
+
     backend = Backend()
 
-    mock_storage = my_client
-    my_client.bucket.return_value = my_bucket
+    mock_storage.bucket.return_value = my_bucket
     my_bucket.blob.return_value = my_blob
-    my_blob.exists.return_value = False  # Makes the function believe that the blob exists
+    my_blob.exists.return_value = False  # Makes the function believe that the blob does not exist
+    mock_json.dumps.return_value = 'This is a json file'
 
-    results = backend.sign_up('username', 'password', mock_storage)
+    results = backend.sign_up('username', 'password', mock_storage, mock_json)
+    mock_storage.bucket.assert_called_with('ama_users_passwords')
+    my_bucket.blob.assert_called_with('username')
+    my_blob.upload_from_string.assert_called_with('This is a json file',content_type='application/json')
     assert results == True
 
 
 @patch("google.cloud.storage.Client")
 def test_sign_up_username_length(mock_storage):
     # Path: Username is too long, sign up unsucessful
-    mock_storage.return_value = mock_client
-    mock_client.bucket.return_value = bucket
-    bucket.blob.return_value = blob
+    my_bucket = MagicMock()
+    my_blob = MagicMock()
+
+    mock_client.bucket.return_value = my_bucket
+    my_bucket.blob.return_value = my_blob
 
     assert backend.sign_up(
         "usernameistoolong123456789123456789123456789123456789",
@@ -86,10 +92,12 @@ def test_sign_up_username_length(mock_storage):
 @patch("google.cloud.storage.Client")
 def test_sign_up_is_member(mock_storage):
     # Path: User already exists
-    mock_storage.return_value = mock_client
-    mock_client.bucket.return_value = bucket
-    bucket.blob.return_value = blob
-    blob.exists.return_value = True  # Forces the return value of exists() to be true, for path purposes
+    my_bucket = MagicMock()
+    my_blob = MagicMock()
+
+    mock_storage.bucket.return_value = my_bucket
+    my_bucket.blob.return_value = blob
+    my_blob.exists.return_value = True  # Forces the return value of exists() to be true, for path purposes
 
     assert backend.sign_up("useralreadyexists", "passworddoesntmatter",
                            mock_storage) == False
@@ -237,25 +245,23 @@ def test_sign_in_found_match(mock_storage):
         def hexdigest(self):
             return self.data
 
+    def mock_get_user_key(username):
+        return 'password'
+
     # Creates Magic Mocks
-    my_client = MagicMock()
     my_bucket = MagicMock()
     my_blob = MagicMock()
 
     backend = Backend()
 
     # Establishes return values for mock operations
-    mock_storage = my_client
-    my_client.bucket.return_value = my_bucket
+    mock_storage.bucket.return_value = my_bucket
     my_bucket.blob.return_value = my_blob
     my_blob.exists.return_value = True  # Makes the function believe that the blob exists
 
-    password = "password123"  # Same as the input in the method
-
-    # Sets blob open value of read to password
-    my_blob.open = mock_open(read_data=password)
-
-    result = backend.sign_in("user123", "password123", mock_storage, Hash)
+    result = backend.sign_in("user123", "password", mock_storage, Hash, mock_get_user_key)
+    mock_storage.bucket.assert_called_with('ama_users_passwords')
+    my_bucket.blob.assert_called_with('user123')
     assert result == True
 
 
@@ -281,25 +287,23 @@ def test_sign_in_found_nomatch(mock_storage):
         def hexdigest(self):
             return self.data
 
+    def mock_get_user_key(username):
+        return 'password'
+
     # Creates Magic Mocks
-    my_client = MagicMock()
     my_bucket = MagicMock()
     my_blob = MagicMock()
 
     backend = Backend()
 
     # Establishes return values for mock operations
-    mock_storage = my_client
-    my_client.bucket.return_value = my_bucket
+    mock_storage.bucket.return_value = my_bucket
     my_bucket.blob.return_value = my_blob
     my_blob.exists.return_value = True  # Makes the function believe that the blob exists
 
-    password = "pass123"  # Not the same as the input in the method
-
-    # Sets blob open value of read to password
-    my_blob.open = mock_open(read_data=password)
-
-    result = backend.sign_in("user123", "pass321", mock_storage, Hash)
+    result = backend.sign_in("user123", "pass321", mock_storage, Hash, mock_get_user_key)
+    mock_storage.bucket.assert_called_with('ama_users_passwords')
+    my_bucket.blob.assert_called_with('user123')
     assert result == False
 
 
@@ -327,22 +331,69 @@ def test_sign_in_not_found(mock_storage):
             return self.data
 
     # Creates Magic Mocks
-    my_client = MagicMock()
     my_bucket = MagicMock()
     my_blob = MagicMock()
 
     backend = Backend()
 
     # Establishes return values for mock operations
-    mock_storage = my_client
-    my_client.bucket.return_value = my_bucket
+    mock_storage.bucket.return_value = my_bucket
     my_bucket.blob.return_value = my_blob
-    my_blob.exists.return_value = False  # Makes the function believe that the blob exists
-
-    password = "password123"
-
-    # Sets blob open value of read to password
-    my_blob.open = mock_open(read_data=password)
+    my_blob.exists.return_value = False  # Makes the function believe that the blob does not exist
 
     result = backend.sign_in("user123", "password123", mock_storage, Hash)
+    mock_storage.bucket.assert_called_with('ama_users_passwords')
+    my_bucket.blob.assert_called_with('user123')
     assert result == False
+
+@patch('google.cloud.storage.Client')
+def test_get_user_key_success(mock_storage):
+    ''' Tests get_user_key(), the blob is found
+
+    Expects to return the password of the user after processing the json information
+    Removes google storage and json dependency
+    '''
+    # Creates magic mocks
+    my_bucket = MagicMock()
+    my_blob = MagicMock()
+    mock_json = MagicMock()
+
+    backend = Backend()
+
+    # Sets return values for important functions that need dependencies
+    mock_storage.bucket.return_value = my_bucket
+    my_bucket.blob.return_value = my_blob
+    my_blob.exists.return_value = True
+    mock_json.loads.return_value = {'key':'pass123456'}
+    my_blob.open = mock_open(read_data="This is a json file content")
+
+    # Asserts output of the method and method calls with specific parameters
+    result = backend.get_user_key('user123',mock_storage,mock_json)
+    mock_storage.bucket.assert_called_with('ama_users_passwords')
+    my_bucket.blob.assert_called_with('user123')
+    assert result == 'pass123456'
+
+@patch('google.cloud.storage.Client')
+def test_get_user_key_fail(mock_storage):
+    ''' Tests get_user_key(), the blob is found
+
+    Expects to return the password of the user after processing the json information
+    Removes google storage and json dependency
+    '''
+    # Creates magic mocks
+    my_bucket = MagicMock()
+    my_blob = MagicMock()
+
+    backend = Backend()
+
+    # Sets return values for important functions that need dependencies
+    mock_storage.bucket.return_value = my_bucket
+    my_bucket.blob.return_value = my_blob
+    my_blob.exists.return_value = False
+
+    # Asserts output of the method and method calls with specific parameters
+    result = backend.get_user_key('user123',mock_storage)
+    mock_storage.bucket.assert_called_with('ama_users_passwords')
+    my_bucket.blob.assert_called_with('user123')
+    assert result == None
+

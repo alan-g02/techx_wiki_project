@@ -4,6 +4,7 @@ from google.cloud import storage
 from io import BytesIO
 from flask import Flask, send_file
 from google.cloud.exceptions import NotFound
+import json
 
 
 class Backend:
@@ -72,7 +73,14 @@ class Backend:
         else:
             #hashing password and adding it to the username file that correlates with it
             hashed_password = hashlib.sha256(password.encode()).hexdigest()
-            blob.upload_from_string(hashed_password)
+
+            user_data = {
+                "key" : hashed_password,
+                "pages_uploaded" : [] 
+                }
+
+            json_data = json.dumps(user_data)
+            blob.upload_from_string(json_data,content_type="application/json")
             print('user created successfully')
             return True
 

@@ -41,7 +41,7 @@ class Backend:
 
     def format(self,content):
         return content
-    def upload(self, bucket_name, file, file_name, file_type, storage_client=storage.Client()):
+    def upload(self, bucket_name, file, file_name, file_type, storage_client=storage.Client(), soup=BeautifulSoup(), mock_format=None):
         """ Uploads a file to the bucket.
 
         Args:
@@ -53,15 +53,16 @@ class Backend:
         file_contents = file.read()
 
         # Sanitze any HTML tags in the file contents
-        clean_content = BeautifulSoup(file_contents,'html.parser',from_encoding='utf-8').get_text()
+        clean_content = soup(file_contents,'html.parser',from_encoding='utf-8').get_text()
 
         # [ALERT] NEED TO ADD CALL TO FORMATTING AFTER MERGE REQUEST IS APPROVED
         # CURRENTLY IT JUST UPLOADS A CLEAN STRING AFTER DELETED ANY HTML
-        formatted_content = self.format(clean_content)
+        formatted_content = mock_format(clean_content) or self.format(clean_content)
 
         bucket = storage_client.bucket(bucket_name)
         blob = bucket.blob('pages/' + file_name)
         blob.upload_from_string(formatted_content, content_type=file_type)
+        return formatted_content
 
 
     def sign_up(self, username, password, storage_client=storage.Client()):

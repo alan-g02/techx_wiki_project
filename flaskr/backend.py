@@ -44,10 +44,16 @@ class Backend:
     def upload(self, bucket_name, file, file_name, file_type, storage_client=storage.Client(), soup=BeautifulSoup(), mock_format=None):
         """ Uploads a file to the bucket.
 
+        The contents of the incoming file are cleaned up of any unwanted html blocks, then another function in the backend class is called
+        to create hyperlinks for related pages in the wiki. Finally the formatted content is uploaded into the bucket.
+
         Args:
             file: The file object to upload.
             file_name: The name to give the uploaded file.
             file_type: The content type of the uploaded file.
+            storage_client: used to accept mock storage client, default is normal storage client
+            soup: used to accept mock soup, default uses BeautifulSoup()
+            mock_format: used to replace self.format() to remove dependecy
         """
         # Read the contents fo the file into a byte string
         file_contents = file.read()

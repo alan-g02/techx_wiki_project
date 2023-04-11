@@ -336,14 +336,25 @@ def test_sign_in_not_found(mock_storage):
 
 @patch("google.cloud.storage.Client")
 def test_upload(mock_storage):
+    ''' Tests upload method in the backend class
+    
+    Asserts if the methods are called with the appropiate parameters, and also if the right content was uploaded.
+    '''
     class Soup:
+        ''' Used to mock BeautifulSoup()
+
+        Mocks BeautifulSoup() to remove a dependency. Using the same amount of parameters and storing them in dummy attributes.
+        '''
         def __init__(self,contents,parser_type,from_encoding):
             self.contents = contents
             self.parser_type = parser_type
             self.encoding = from_encoding
         def get_text(self):
+            '''Returns a string of the contents without html blocks'''
             return 'This is the contents of the uploaded file with '
+
     def mock_format(content):
+        'Returns a string of the formatted string, which is really the same as what mock soup returns'
         return 'This is the contents of the uploaded file with '
 
     # Creates Magic Mocks

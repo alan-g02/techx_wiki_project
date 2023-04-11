@@ -39,7 +39,9 @@ class Backend:
 
         return list_page_names
 
-    def upload(self, bucket_name, file, file_name, file_type):
+    def format(self,content):
+        return content
+    def upload(self, bucket_name, file, file_name, file_type, storage_client=storage.Client()):
         """
         Uploads a file to the bucket.
 
@@ -57,14 +59,11 @@ class Backend:
 
         # [ALERT] NEED TO ADD CALL TO FORMATTING AFTER MERGE REQUEST IS APPROVED
         # CURRENTLY IT JUST UPLOADS A CLEAN STRING AFTER DELETED ANY HTML
+        formatted_content = self.format(clean_content)
 
-        # Create a GCS client and get the bucket
-        storage_client = storage.Client()
         bucket = storage_client.bucket(bucket_name)
-
-        # Create a blob for the file and upload it to the bucket
         blob = bucket.blob('pages/' + file_name)
-        blob.upload_from_string(clean_content, content_type=file_type)
+        blob.upload_from_string(formatted_content, content_type=file_type)
 
 
     def sign_up(self, username, password, storage_client=storage.Client()):

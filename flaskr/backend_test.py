@@ -360,6 +360,10 @@ def test_upload(mock_storage):
     backend = Backend()
     result = backend.upload("my_bucket", mock_file, "test_file", "text/html",mock_storage,Soup,mock_format)
 
+    mock_file.read.assert_called_once()
+    mock_storage.bucket.assert_called_with("my_bucket")
+    my_bucket.blob.assert_called_with('pages/test_file')
+    my_blob.upload_from_string.assert_called_with('This is the contents of the uploaded file with ', content_type="text/html")
     assert result == 'This is the contents of the uploaded file with '
 
     

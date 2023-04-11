@@ -25,7 +25,7 @@ def test_upload(mock_storage):
     mock_client.bucket.return_value = bucket
     bucket.blob.return_value = blob
 
-    backend.upload("wiki", "test_file", "page", ".txt")
+    backend.upload("wiki", "test_file", "page", ".txt",'user1234')
     mock_client.bucket.assert_called_with("wiki")
     bucket.blob.assert_called_with("pages/page")
     blob.upload_from_file.assert_called_with("test_file", content_type=".txt")
@@ -396,4 +396,35 @@ def test_get_user_key_fail(mock_storage):
     mock_storage.bucket.assert_called_with('ama_users_passwords')
     my_bucket.blob.assert_called_with('user123')
     assert result == None
+
+@patch('google.cloud.storage.Client')
+def test_add_page_to_user_data(mock_storage):
+    ''' Tests add_page_to_user_data'''
+    def mock_dumps(input_map):
+        result = '{'
+        for key in input_map.keys():
+            result += key + ':' + ''.join(input_map[key]) + ','
+        result = result[:-1] + '}'
+        return result
+
+    my_bucket = MagicMock()
+    my_blob = MagicMock()
+    mock_json = MagicMock()
+
+    backend = Backend()
+
+    mock_storage.bucket.return_value = my_bucket
+    my_bucket.blob.return_value = my_blob
+    my_blob.open = mock_open(read_data="User data")
+    mock_json.loads.return_value = { 'password':'hello1234' , 'pages_uploaded': [] }
+    mock_json.dumps = mock_dumps
+
+    backend.add_page_to_user_data('user123','my_file',mock_storage,mock_json)
+    mock_storage.bucket.assert_called_with('ama_users_passwords')
+    my_bucket.blob.assert_called_with('user123')
+    my_blob.upload_from_string.assert_called_with('{password:hello1234,pages_uploaded:pages/my_file}',content_type='application/json')
+
+
+
+
 

@@ -401,24 +401,28 @@ def test_get_user_key_fail(mock_storage):
 def test_add_page_to_user_data(mock_storage):
     ''' Tests add_page_to_user_data'''
     def mock_dumps(input_map):
+        '''Returns a string a map'''
         result = '{'
         for key in input_map.keys():
             result += key + ':' + ''.join(input_map[key]) + ','
         result = result[:-1] + '}'
         return result
 
+    # Create magic mocks
     my_bucket = MagicMock()
     my_blob = MagicMock()
     mock_json = MagicMock()
 
     backend = Backend()
 
+    # Set return values for important functions
     mock_storage.bucket.return_value = my_bucket
     my_bucket.blob.return_value = my_blob
     my_blob.open = mock_open(read_data="User data")
     mock_json.loads.return_value = { 'password':'hello1234' , 'pages_uploaded': [] }
     mock_json.dumps = mock_dumps
 
+    # Assert if methods are called with specific parameters
     backend.add_page_to_user_data('user123','my_file',mock_storage,mock_json)
     mock_storage.bucket.assert_called_with('ama_users_passwords')
     my_bucket.blob.assert_called_with('user123')
@@ -427,17 +431,20 @@ def test_add_page_to_user_data(mock_storage):
 @patch('google.cloud.storage.Client')
 def test_get_pages_authored(mock_storage):
     ''' Tests get_pages_authored() '''
+    # Create magic mocks
     my_bucket = MagicMock()
     my_blob = MagicMock()
     mock_json = MagicMock()
 
     backend = Backend()
 
+    # Set return values for important functions
     mock_storage.bucket.return_value = my_bucket
     my_bucket.blob.return_value = my_blob
     my_blob.open = mock_open(read_data="User data")
     mock_json.loads.return_value = { 'password':'hello1234' , 'pages_uploaded': ['pages/my_file'] }
 
+    # Assert if methods are called with specific parameters
     assert ['pages/my_file'] == backend.get_pages_authored('user1234',mock_storage,mock_json)
     mock_storage.bucket.assert_called_with('ama_users_passwords')
     my_bucket.blob.assert_called_with('user1234')

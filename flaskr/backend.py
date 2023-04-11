@@ -97,7 +97,7 @@ class Backend:
                 password,
                 storage_client=storage.Client(),
                 hash=hashlib.sha256,
-                get_key=get_user_key):
+                get_key=None):
         '''Returns a boolean if the user is found and the password matches.
 
         Searches the ama_users_passwords bucket for a match with the parameters received.
@@ -107,6 +107,8 @@ class Backend:
             password: used to compare to the value inside the username blob
             storage_client: used to receive a mock storage client, default is normal storage client
         '''
+        if get_key is None:
+            get_key = self.get_user_key
         bucket = storage_client.bucket("ama_users_passwords")
         blob = bucket.blob(username)
         if blob.exists():

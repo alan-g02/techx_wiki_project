@@ -32,6 +32,11 @@ def make_endpoints(app):
                                pagename=current_page[6:],
                                contents=contents)
 
+    @app.route("/my_pages")
+    def my_pages():
+        pages_authored = backend.get_pages_authored(current_user.id)
+        return render_template('pages_authored.html',pagenames=pages_authored)
+
     @app.route("/logout")
     def logout():
         logout_user()

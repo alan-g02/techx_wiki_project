@@ -94,7 +94,7 @@ class Backend:
             return map['key']
         else:
             return None
-            
+
     def sign_in(self,
                 username,
                 password,
@@ -113,11 +113,11 @@ class Backend:
         blob = bucket.blob(username)
         if blob.exists():
             hashed_password = hash(password.encode()).hexdigest()
-            with blob.open("r") as f:
-                if f.read() == hashed_password:
-                    return True
-                else:
-                    return False
+            key = self.get_user_key(username)
+            if key == hashed_password:
+                return True
+            else:
+                return False
         else:
             return False
 

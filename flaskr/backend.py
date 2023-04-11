@@ -84,6 +84,17 @@ class Backend:
             print('user created successfully')
             return True
 
+    def get_user_key(self, username, storage_client=storage.Client()):
+        bucket = storage_client.bucket('ama_users_passwords')
+        blob = bucket.blob(username)
+        if blob.exists():
+            map = {}
+            with blob.open('r') as b:
+                map = json.loads(b.read())
+            return map['key']
+        else:
+            return None
+            
     def sign_in(self,
                 username,
                 password,

@@ -39,7 +39,29 @@ class Backend:
 
         return list_page_names
 
-    def upload(self, bucket_name, file, file_name, file_type):
+    def add_page_to_user_data(self,username,file_name,storage_client=storage.Client(),json_module=json):
+        ''' Updates user list of pages authored after uploading a page
+
+        Processes the user json file to a python dictionary, adds the new uploaded page file name to the list.
+        Processes the dictionary back to json and uploads.
+
+        Args:
+            username: used to update the right user file
+            file_name: used to add the file name to the user list of pages authored
+            storage_client: used to inject mock storage, uses google storage by default
+            json_module: used to inject mock json, uses normal json by default
+        '''
+        bucket = storage_client.bucket('ama_users_passwords')
+        blob = bucket.blob(username)
+        user_data = {}
+        with blob.open('r') as b:
+            user_data = json_module.loads(b.read())
+        user_data['pages_uploaded'].append('pages/'+file_name)
+        json_data = json_module.dumps(user_data)
+        blob.upload_from_string(json_data,content_type="application/json")
+
+    
+    def upload(self, bucket_name, file, file_name, file_type, username):
         """Uploads a file to the bucket."""
         # The ID of your GCS bucket
         # bucket_name = "your-bucket-name"
@@ -53,6 +75,7 @@ class Backend:
         blob = bucket.blob('pages/' + file_name)
 
         blob.upload_from_file(file, content_type=file_type)
+        self.add_page_to_user_data(username,file_name)
         return
 
     def sign_up(self, username, password, storage_client=storage.Client(), json_module=json):

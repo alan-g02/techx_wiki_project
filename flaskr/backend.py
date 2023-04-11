@@ -60,6 +60,22 @@ class Backend:
         json_data = json_module.dumps(user_data)
         blob.upload_from_string(json_data,content_type="application/json")
 
+    def get_pages_authored(self,username,storage_client=storage.Client(),json_module=json):
+        '''Gets the list of pages authored by the user
+        
+        Converts user data from json to python dictionary and returns key pages_uploaded that contains a list of pages authored
+
+        Args:
+            username: used to get the data from the user
+            storage_client: used to inject mock storage, uses google storage by default
+            json_module: used to inject mock json, uses normal json by default
+        '''
+        bucket = storage_client.bucket('ama_users_passwords')
+        blob = bucket.blob(username)
+        user_data = {}
+        with blob.open('r') as b:
+            user_data = json_module.loads(b.read())
+        return user_data['pages_uploaded']
     
     def upload(self, bucket_name, file, file_name, file_type, username, add_page=False):
         """Uploads a file to the bucket."""

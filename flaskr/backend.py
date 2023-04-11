@@ -42,11 +42,9 @@ class Backend:
     def format(self,content):
         return content
     def upload(self, bucket_name, file, file_name, file_type, storage_client=storage.Client()):
-        """
-        Uploads a file to the bucket.
+        """ Uploads a file to the bucket.
 
         Args:
-            bucket_name: The name of the GCS bucket to upload to.
             file: The file object to upload.
             file_name: The name to give the uploaded file.
             file_type: The content type of the uploaded file.

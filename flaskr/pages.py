@@ -1,6 +1,6 @@
 from flask import render_template, send_file, request, redirect, url_for
 from flaskr import backend
-from flask_login import logout_user
+from flask_login import logout_user, current_user
 
 backend = backend.Backend()
 
@@ -78,5 +78,5 @@ def make_endpoints(app):
             # If not .txt
             return render_template('upload.html', status='wrong_file')
         else:
-            backend.upload('ama_wiki_content', file, input_value, 'text/plain')
+            backend.upload('ama_wiki_content', file, input_value, 'text/plain', current_user.id,True)
             return render_template('upload.html', status='successful')

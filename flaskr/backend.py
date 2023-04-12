@@ -5,6 +5,7 @@ from io import BytesIO
 from flask import Flask, send_file
 from google.cloud.exceptions import NotFound
 from bs4 import BeautifulSoup
+import math
 
 
 class Backend:
@@ -39,8 +40,71 @@ class Backend:
 
         return list_page_names
 
-    def format(self,content):
-        return content
+    def scan_contents(self,contents,pages_lst=None):
+        """Scans contents for references to wiki pages and returns a formatted string.
+
+        Args:
+            contents: A string containing the text to scan for wiki page references.
+            pages_lst: An optional list of strings representing the names of wiki pages
+                to use for the scan. Defaults to None.
+
+        Returns:
+            A string containing the original contents with any wiki page references
+            formatted as hyperlinks.
+        """
+        pages_list= pages_lst or self.get_all_page_names('ama_wiki_content','pages/')
+        max_length = -math.inf # Length of the longest wiki page title
+        pages_set = set() # Set of strings with the list of pages in the string
+        for i in range(len(pages_list)):
+            temp = pages_list[i][6:]
+            if len(temp) > max_length:
+                max_length = len(temp)
+            pages_set.add(temp)
+        used_pages = set() # Saves the pages that have already been used in the
+        split_contents = contents.split()
+        result = ''       
+        i = 0
+        while i < len(split_contents):
+            longest_valid_title = ''
+            temp = ''
+            skip_count = 0
+            j = i
+            while (j < len(split_contents)) and (len(temp) <= max_length):
+                if temp == '':
+                    temp += split_contents[j]
+                else:
+                    temp += ' ' + split_contents[j]   
+                dot_at_the_end = False   
+                if temp[-1] == '.': # Deleting "." because words might be at the end of a sentence
+                    temp = temp[:-1]      
+                    dot_at_the_end = True  
+                if (temp in pages_set) and (temp not in used_pages) and (len(temp) > len(longest_valid_title)):
+                    longest_valid_title = temp
+                    if dot_at_the_end: # Adds the "." back, Why? To remember later there is a dot and include it in the final string
+                        longest_valid_title += '.'
+                    skip_count = j-i
+                j += 1
+            if longest_valid_title == '':
+                if result == '':
+                    result += split_contents[i]
+                else:
+                    result += ' ' + split_contents[i]
+            else:
+                dot_at_the_end_part_2 = False
+                if longest_valid_title[-1] == '.': # Removes the dot
+                    longest_valid_title = longest_valid_title[:-1]
+                    dot_at_the_end_part_2 = True
+                used_pages.add(longest_valid_title)
+                longest_valid_title = f'<a href=\"/page_results?current_page=pages/{longest_valid_title}\">{longest_valid_title}</a>' # Creates a hyperlink of the linked page
+                if dot_at_the_end_part_2: # Adds the dot after the hyperlink if there was a dot
+                    longest_valid_title += '.'
+                if result == '':
+                    result += longest_valid_title
+                else:
+                    result += ' ' + longest_valid_title
+            i += skip_count + 1
+        return result
+
     def upload(self, bucket_name, file, file_name, file_type, storage_client=storage.Client(), soup=BeautifulSoup(), mock_format=None):
         """ Uploads a file to the bucket.
 
@@ -63,7 +127,7 @@ class Backend:
 
         # [ALERT] NEED TO ADD CALL TO FORMATTING AFTER MERGE REQUEST IS APPROVED
         # CURRENTLY IT JUST UPLOADS A CLEAN STRING AFTER DELETED ANY HTML
-        formatted_content = mock_format(clean_content) or self.format(clean_content)
+        formatted_content = mock_format(clean_content) or self.scan_contents(clean_content)
 
         bucket = storage_client.bucket(bucket_name)
         blob = bucket.blob('pages/' + file_name)

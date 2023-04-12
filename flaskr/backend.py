@@ -105,7 +105,7 @@ class Backend:
             i += skip_count + 1
         return result
 
-    def upload(self, bucket_name, file, file_name, file_type, storage_client=storage.Client(), soup=BeautifulSoup(), mock_format=None):
+    def upload(self, bucket_name, file, file_name, file_type, storage_client=storage.Client(), soup=BeautifulSoup, scan=None):
         """ Uploads a file to the bucket.
 
         The contents of the incoming file are cleaned up of any unwanted html blocks, then another function in the backend class is called
@@ -119,6 +119,10 @@ class Backend:
             soup: used to accept mock soup, default uses BeautifulSoup()
             mock_format: used to replace self.format() to remove dependecy
         """
+        # Checks if any mock objects were injected
+        if scan is None:
+            scan = self.scan_contents
+            
         # Read the contents fo the file into a byte string
         file_contents = file.read()
 
@@ -127,7 +131,7 @@ class Backend:
 
         # [ALERT] NEED TO ADD CALL TO FORMATTING AFTER MERGE REQUEST IS APPROVED
         # CURRENTLY IT JUST UPLOADS A CLEAN STRING AFTER DELETED ANY HTML
-        formatted_content = mock_format(clean_content) or self.scan_contents(clean_content)
+        formatted_content = scan(clean_content)
 
         bucket = storage_client.bucket(bucket_name)
         blob = bucket.blob('pages/' + file_name)

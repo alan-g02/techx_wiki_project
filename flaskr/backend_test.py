@@ -377,7 +377,16 @@ def test_upload(mock_storage):
     my_blob.upload_from_string.assert_called_with('This is the contents of the uploaded file with ', content_type="text/html")
     assert result == 'This is the contents of the uploaded file with '
 
-    
+def test_scan_contents():
+    ''' Tests the functionality of the scan_contents method.'''
+    # Input values
+    contents = 'This is a reference to Page 1. This is not a reference to Page 1. This is a reference to Page 2. This is not a reference page 3.'
+    pages = ['pages/Page 1', 'pages/Page 2','pages/Page 3']
+    backend = Backend()
+
+    result = backend.scan_contents(contents,pages)
+
+    assert result == 'This is a reference to <a href="/page_results?current_page=pages/Page 1\">Page 1</a>. This is not a reference to Page 1. This is a reference to <a href="/page_results?current_page=pages/Page 2\">Page 2</a>. This is not a reference page 3.'
 
 
     

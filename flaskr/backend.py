@@ -55,49 +55,67 @@ class Backend:
         pages_list= pages_lst or self.get_all_page_names('ama_wiki_content','pages/')
         max_length = -math.inf # Length of the longest wiki page title
         pages_set = set() # Set of strings with the list of pages in the string
+
         for i in range(len(pages_list)):
-            temp = pages_list[i][6:]
+            temp = pages_list[i][6:] # Removes the prefix 'pages/' from every page name
             if len(temp) > max_length:
                 max_length = len(temp)
             pages_set.add(temp)
+
         used_pages = set() # Saves the pages that have already been used in the
-        split_contents = contents.split()
+        split_contents = contents.split() # Splits every string / page title into a list
         result = ''       
         i = 0
+
+        # Goes through the list of all words
         while i < len(split_contents):
             longest_valid_title = ''
             temp = ''
             skip_count = 0
             j = i
+
+            # Finds the longest title, from the starting word in the first while loop, all the way to the right until the string does not match a page title
             while (j < len(split_contents)) and (len(temp) <= max_length):
                 if temp == '':
                     temp += split_contents[j]
                 else:
-                    temp += ' ' + split_contents[j]   
-                dot_at_the_end = False   
-                if temp[-1] == '.': # Deleting "." because words might be at the end of a sentence
+                    temp += ' ' + split_contents[j] 
+
+                # Removes the dot from the end of the string because page titles usually do not have dots
+                dot_at_the_end = False # Helps remember if there was a dot to add it later  
+                if temp[-1] == '.':
                     temp = temp[:-1]      
                     dot_at_the_end = True  
+
+                # Checks if the new string is a page title and not already a linked page.
                 if (temp in pages_set) and (temp not in used_pages) and (len(temp) > len(longest_valid_title)):
                     longest_valid_title = temp
                     if dot_at_the_end: # Adds the "." back, Why? To remember later there is a dot and include it in the final string
                         longest_valid_title += '.'
                     skip_count = j-i
                 j += 1
+
+            # If the starting word did not build a title, just add the word as normal
             if longest_valid_title == '':
+                # If starting word in contents. dont add space
                 if result == '':
                     result += split_contents[i]
                 else:
                     result += ' ' + split_contents[i]
             else:
-                dot_at_the_end_part_2 = False
+                # Another dot check
+                dot_at_the_end_part_2 = False # Helps remember again if the word had a dot before removing it
                 if longest_valid_title[-1] == '.': # Removes the dot
                     longest_valid_title = longest_valid_title[:-1]
                     dot_at_the_end_part_2 = True
-                used_pages.add(longest_valid_title)
+
+                used_pages.add(longest_valid_title) # Adds the built string that matched the page into the set, to no longer be used
                 longest_valid_title = f'<a href=\"/page_results?current_page=pages/{longest_valid_title}\">{longest_valid_title}</a>' # Creates a hyperlink of the linked page
-                if dot_at_the_end_part_2: # Adds the dot after the hyperlink if there was a dot
+
+                # Adds the dot after the hyperlink if there was a dot
+                if dot_at_the_end_part_2:
                     longest_valid_title += '.'
+                # If starting word in the contents, dont add space
                 if result == '':
                     result += longest_valid_title
                 else:

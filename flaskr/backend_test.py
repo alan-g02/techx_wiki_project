@@ -379,6 +379,7 @@ def test_upload(mock_storage):
     my_blob.upload_from_string.assert_called_with('This is the contents of the uploaded file with ', content_type="text/html")
     assert result == 'This is the contents of the uploaded file with '
 
+
 def test_scan_contents():
     ''' Tests the functionality of the scan_contents method.'''
     # Input values

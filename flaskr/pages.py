@@ -74,8 +74,8 @@ def make_endpoints(app):
         '''
         input_value = request.form['wikiname']
         file = request.files.get('file_to_upload')
-        pages = backend.get_all_page_names('ama_wiki_content', 'blob')
-        if input_value in pages:
+        pages = backend.get_all_page_names('ama_wiki_content', 'pages/')
+        if f'pages/{input_value}' in pages:
             # Wiki name already in use
             return render_template('upload.html', status='used')
         elif 'file_to_upload' not in request.files:

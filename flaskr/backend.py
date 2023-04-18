@@ -129,6 +129,7 @@ class Backend:
         # Sanitze any HTML tags in the file contents
         clean_content = soup(file_contents,'html.parser',from_encoding='utf-8').get_text()
 
+        # Calls scan_contents() by default to identify all possible page links
         formatted_content = scan(clean_content)
 
         bucket = storage_client.bucket(bucket_name)

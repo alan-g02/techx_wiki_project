@@ -129,8 +129,6 @@ class Backend:
         # Sanitze any HTML tags in the file contents
         clean_content = soup(file_contents,'html.parser',from_encoding='utf-8').get_text()
 
-        # TODO: NEED TO ADD CALL TO FORMATTING AFTER MERGE REQUEST IS APPROVED
-        # CURRENTLY IT JUST UPLOADS A CLEAN STRING AFTER DELETED ANY HTML
         formatted_content = scan(clean_content)
 
         bucket = storage_client.bucket(bucket_name)

@@ -18,19 +18,6 @@ blob = MagicMock()
 backend = Backend()
 file = MagicMock()
 
-
-@patch("google.cloud.storage.Client")
-def test_upload(mock_storage):
-    mock_storage.return_value = mock_client
-    mock_client.bucket.return_value = bucket
-    bucket.blob.return_value = blob
-
-    backend.upload("wiki", "test_file", "page", ".txt")
-    mock_client.bucket.assert_called_with("wiki")
-    bucket.blob.assert_called_with("pages/page")
-    blob.upload_from_file.assert_called_with("test_file", content_type=".txt")
-
-
 @patch("google.cloud.storage.Client")
 def test_get_all_page_names(mock_storage):
     mock_storage.return_value = mock_client
@@ -346,3 +333,60 @@ def test_sign_in_not_found(mock_storage):
 
     result = backend.sign_in("user123", "password123", mock_storage, Hash)
     assert result == False
+
+@patch("google.cloud.storage.Client")
+def test_upload(mock_storage):
+    ''' Tests upload method in the backend class
+    
+    Asserts if the methods are called with the appropiate parameters, and also if the right content was uploaded.
+    '''
+    class Soup:
+        ''' Used to mock BeautifulSoup()
+
+        Mocks BeautifulSoup() to remove a dependency. Using the same amount of parameters and storing them in dummy attributes.
+        '''
+        def __init__(self,contents,parser_type,from_encoding):
+            self.contents = contents
+            self.parser_type = parser_type
+            self.encoding = from_encoding
+        def get_text(self):
+            '''Returns a string of the contents without html blocks'''
+            return 'This is the contents of the uploaded file with '
+
+    def mock_format(content):
+        'Returns a string of the formatted string, which is really the same as what mock soup returns'
+        return 'This is the contents of the uploaded file with '
+
+    # Creates Magic Mocks
+    my_bucket = MagicMock()
+    my_blob = MagicMock()
+    mock_file = MagicMock()
+
+    # Establishes return values for mock operations
+    mock_storage.bucket.return_value = my_bucket
+    my_bucket.blob.return_value = my_blob
+    mock_file.read.return_value = b'This is the contents of the uploaded file with <Illegal html>'
+
+    # Calls the function being tested
+    backend = Backend()
+    result = backend.upload("my_bucket", mock_file, "test_file", "text/html",mock_storage,Soup,mock_format)
+
+    mock_file.read.assert_called_once()
+    mock_storage.bucket.assert_called_with("my_bucket")
+    my_bucket.blob.assert_called_with('pages/test_file')
+    my_blob.upload_from_string.assert_called_with('This is the contents of the uploaded file with ', content_type="text/html")
+    assert result == 'This is the contents of the uploaded file with '
+
+def test_scan_contents():
+    ''' Tests the functionality of the scan_contents method.'''
+    # Input values
+    contents = 'This is a reference to Page 1. This is not a reference to Page 1. This is a reference to Page 2. This is not a reference page 3.'
+    pages = ['pages/Page 1', 'pages/Page 2','pages/Page 3']
+    backend = Backend()
+
+    result = backend.scan_contents(contents,pages)
+
+    assert result == 'This is a reference to <a href="/page_results?current_page=pages/Page 1\">Page 1</a>. This is not a reference to Page 1. This is a reference to <a href="/page_results?current_page=pages/Page 2\">Page 2</a>. This is not a reference page 3.'
+
+
+    

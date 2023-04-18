@@ -83,5 +83,5 @@ def make_endpoints(app):
             # If not .txt
             return render_template('upload.html', status='wrong_file')
         else:
-            backend.upload('ama_wiki_content', file, input_value, 'text/plain', current_user.id,True)
+            backend.upload('ama_wiki_content', file, input_value, 'text/plain', current_user.id)
             return render_template('upload.html', status='successful')

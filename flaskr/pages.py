@@ -1,6 +1,6 @@
 from flask import render_template, send_file, request, redirect, url_for
 from flaskr import backend
-from flask_login import logout_user
+from flask_login import logout_user, current_user
 
 backend = backend.Backend()
 
@@ -35,6 +35,11 @@ def make_endpoints(app):
         return render_template('page_results.html',
                                pagename=current_page[6:],
                                contents=contents)
+
+    @app.route("/my_pages")
+    def my_pages():
+        pages_authored = backend.get_pages_authored(current_user.id)
+        return render_template('pages_authored.html',pagenames=pages_authored)
 
     @app.route("/logout")
     def logout():
@@ -82,5 +87,5 @@ def make_endpoints(app):
             # If not .txt
             return render_template('upload.html', status='wrong_file')
         else:
-            backend.upload('ama_wiki_content', file, input_value, 'text/plain')
+            backend.upload('ama_wiki_content', file, input_value, 'text/plain', current_user.id)
             return render_template('upload.html', status='successful')

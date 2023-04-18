@@ -77,7 +77,7 @@ class Backend:
             user_data = json_module.loads(b.read())
         return user_data['pages_uploaded']
     
-    def upload(self, bucket_name, file, file_name, file_type, username):
+    def upload(self, bucket_name, file, file_name, file_type, username, add_page=None):
         """Uploads a file to the bucket."""
         # The ID of your GCS bucket
         # bucket_name = "your-bucket-name"
@@ -85,13 +85,15 @@ class Backend:
         # source_file_name = "local/path/to/file"
         # The ID of your GCS object
         # destination_blob_name = "storage-object-name"
+        if not add_page:
+            add_page = self.add_page_to_user_data
 
         storage_client = storage.Client()
         bucket = storage_client.bucket(bucket_name)
         blob = bucket.blob('pages/' + file_name)
 
         blob.upload_from_file(file, content_type=file_type)
-        self.add_page_to_user_data(username,file_name)
+        add_page(username,file_name)
 
     def sign_up(self, username, password, storage_client=storage.Client(), json_module=json):
         #Creating a list of blobs (all_blobs) which holds a file for each username.

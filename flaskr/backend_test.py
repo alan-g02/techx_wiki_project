@@ -21,11 +21,12 @@ file = MagicMock()
 
 @patch("google.cloud.storage.Client")
 def test_upload(mock_storage):
+    mock_add_page = MagicMock()
     mock_storage.return_value = mock_client
     mock_client.bucket.return_value = bucket
     bucket.blob.return_value = blob
 
-    backend.upload("wiki", "test_file", "page", ".txt",'user1234')
+    backend.upload("wiki", "test_file", "page", ".txt",'user1234',mock_add_page)
     mock_client.bucket.assert_called_with("wiki")
     bucket.blob.assert_called_with("pages/page")
     blob.upload_from_file.assert_called_with("test_file", content_type=".txt")

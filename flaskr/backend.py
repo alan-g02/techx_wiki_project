@@ -4,6 +4,7 @@ from google.cloud import storage
 from io import BytesIO
 from flask import Flask, send_file
 from google.cloud.exceptions import NotFound
+from bs4 import BeautifulSoup
 import math
 import json
 

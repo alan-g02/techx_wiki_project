@@ -1,4 +1,3 @@
-# TODO(Project 1): Implement Backend according to the requirements.
 import hashlib
 from google.cloud import storage
 from io import BytesIO
@@ -15,6 +14,13 @@ class Backend:
         pass
 
     def get_wiki_page(self, file_name, storage_client=storage.Client()):
+        print()
+        print()
+        print()
+        print(file_name)
+        print()
+        print()
+        print()
         #Implementing bucket/blob
         bucket_wikiPage = storage_client.bucket("ama_wiki_content")
         blob = bucket_wikiPage.blob(file_name)
@@ -23,7 +29,7 @@ class Backend:
         with blob.open('r') as f:
             return f.read()
 
-    def get_all_page_names(self, bucket_name, folder_name):
+    def get_all_page_names(self, bucket_name, folder_name,storage_client=storage.Client()):
         """Write and read a blob from GCS using file-like IO"""
         # The ID of your GCS bucket
         # bucket_name = "your-bucket-name"
@@ -31,12 +37,11 @@ class Backend:
         # The ID of your new GCS object
         # blob_name = "storage-object-name"
         list_page_names = []
-        storage_client = storage.Client()
         bucket = storage_client.bucket(bucket_name)
         blobs = bucket.list_blobs(prefix=folder_name)
 
         for blob in blobs:
-            if not blob.name.endswith('/'):
+            if not blob.name.endswith('/attributes') and blob.name.endswith('/contents'):
                 list_page_names.append(blob.name)
 
         return list_page_names
@@ -58,7 +63,7 @@ class Backend:
         pages_set = set() # Set of strings with the list of pages in the string
 
         for i in range(len(pages_list)):
-            temp = pages_list[i][6:] # Removes the prefix 'pages/' from every page name
+            temp = pages_list[i][6:-9] # Removes the prefix 'pages/' and '/contents' from every page name
             if len(temp) > max_length:
                 max_length = len(temp)
             pages_set.add(temp)
@@ -111,7 +116,7 @@ class Backend:
                     dot_at_the_end_part_2 = True
 
                 used_pages.add(longest_valid_title) # Adds the built string that matched the page into the set, to no longer be used
-                longest_valid_title = f'<a href=\"/page_results?current_page=pages/{longest_valid_title}\">{longest_valid_title}</a>' # Creates a hyperlink of the linked page
+                longest_valid_title = f'<a href=\"/page_results?current_page=pages/{longest_valid_title}/contents\">{longest_valid_title}</a>' # Creates a hyperlink of the linked page
 
                 # Adds the dot after the hyperlink if there was a dot
                 if dot_at_the_end_part_2:
@@ -124,7 +129,7 @@ class Backend:
             i += skip_count + 1
         return result
 
-    def upload(self, bucket_name, file, file_name, file_type, username, storage_client=storage.Client(), soup=BeautifulSoup, scan=None, add_page=None):
+    def upload(self, bucket_name, file, file_name, file_type, username, storage_client=storage.Client(), soup=BeautifulSoup, scan=None, add_page=None, upload_attributes=None):
         """ Uploads a file to the bucket.
 
         The contents of the incoming file are cleaned up of any unwanted html blocks, then another function in the backend class is called
@@ -141,8 +146,10 @@ class Backend:
         # Checks if any mock objects were injected
         if scan is None:
             scan = self.scan_contents
-        if not add_page:
+        if add_page is None:
             add_page = self.add_page_to_user_data
+        if upload_attributes is None:
+            upload_attributes = self.create_page_attributes
             
         # Read the contents fo the file into a byte string
         file_contents = file.read()
@@ -153,8 +160,11 @@ class Backend:
         # Calls scan_contents() by default to identify all possible page links
         formatted_content = scan(clean_content)
 
+        # TODO: Pass the image url of the image linked to the page, change the 3rd parameter
+        upload_attributes(file_name,username,'image_url')
+
         bucket = storage_client.bucket(bucket_name)
-        blob = bucket.blob('pages/' + file_name)
+        blob = bucket.blob(f'pages/{file_name}/contents')
         blob.upload_from_string(formatted_content, content_type=file_type)
         add_page(username,file_name)
         return formatted_content
@@ -290,3 +300,24 @@ class Backend:
                 return bytes_io(f.read())
         else:
             return None
+
+    def get_page_attributes(self,file_name,storage_client=storage.Client(),json_module=json):
+            bucket = storage_client.bucket('ama_wiki_content')
+            blob = bucket.blob(f'pages/{file_name}/attributes')
+            if blob.exists():
+                map = {}
+                with blob.open('r') as b:
+                    map = json_module.loads(b.read())
+                return map
+            else:
+                return None
+
+    def create_page_attributes(self,file_name,user,image_url,storage_client=storage.Client(),json_module=json):
+            page_data = {
+                "author" : user,
+                "image_path": image_url
+                }
+            json_data = json_module.dumps(page_data)
+            bucket = storage_client.bucket('ama_wiki_content')
+            blob = bucket.blob(f'pages/{file_name}/attributes')
+            blob.upload_from_string(json_data,content_type="application/json")

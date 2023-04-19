@@ -31,10 +31,12 @@ def make_endpoints(app):
     @app.route("/page_results")
     def page_results():
         current_page = request.args.get('current_page')
+        attributes = backend.get_page_attributes(current_page[6:-9])
         contents = backend.get_wiki_page(current_page)
         return render_template('page_results.html',
-                               pagename=current_page[6:],
-                               contents=contents)
+                               pagename=current_page[6:-9],
+                               contents=contents,
+                               author=attributes['author'])
 
     @app.route("/my_pages")
     def my_pages():

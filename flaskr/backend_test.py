@@ -18,26 +18,28 @@ blob = MagicMock()
 backend = Backend()
 file = MagicMock()
 
+
 @patch("google.cloud.storage.Client")
 def test_get_all_page_names(mock_storage):
-    mock_storage.return_value = mock_client
-    mock_client.bucket.return_value = bucket
+    class MockBlob:
+        def __init__(self,name):
+            self.name = name
+        def name(self):
+            return self.name
 
-    backend.get_all_page_names("wiki", "pages")
-    mock_client.bucket.assert_called_with("wiki")
-    bucket.list_blobs.assert_called_with(prefix="pages")
+    my_bucket = MagicMock()
 
+    backend = Backend()
 
-@patch("google.cloud.storage.Client")
-def test_get_all_page_nameslist(mock_storage):
-    mock_storage.return_value = mock_client
-    mock_client.bucket.return_value = bucket
-    test_page1 = test_list_blobs("pages/")
-    test_page2 = test_list_blobs("pages/page")
-    bucket.list_blobs.return_value = [test_page1, test_page2]
+    # Establishes return values for mock operations
+    mock_storage.bucket.return_value = my_bucket
+    my_bucket.list_blobs.return_value = [MockBlob('pages/file/contents'),MockBlob('pages/file/attributes'),MockBlob('pages/file2')]
 
-    pagenames = backend.get_all_page_names("wiki", "pages")
-    assert pagenames == ["pages/page"]
+    expected = ['pages/file/contents']
+    result = backend.get_all_page_names("bucket","folder",mock_storage)
+    mock_storage.bucket.assert_called_with('bucket')
+    my_bucket.list_blobs.assert_called_with(prefix='folder')
+    assert expected == result
 
 
 @patch("google.cloud.storage.Client")
@@ -163,7 +165,7 @@ def test_get_image_succeeds(mock_storage):
 
 @patch("google.cloud.storage.Client")
 def test_get_image_fail(mock_storage):
-    ''' Tests get_image() and expects a successful retrival
+    ''' Tests get_image() and expects a unsuccessful retrival
 
     Tests get_image() and expects a successful retrival.
     Removes dependencies: storage client, bucket, blob, and bytesio
@@ -358,6 +360,9 @@ def test_upload(mock_storage):
 
     def mock_add_page(username,filename):
         return 1
+    
+    def mock_upload_attributes(filename,user,image_url):
+        return 1
 
     # Creates Magic Mocks
     my_bucket = MagicMock()
@@ -371,11 +376,11 @@ def test_upload(mock_storage):
 
     # Calls the function being tested
     backend = Backend()
-    result = backend.upload("my_bucket", mock_file, "test_file", "text/html", "user123", mock_storage,Soup,mock_format,mock_add_page)
+    result = backend.upload("my_bucket", mock_file, "test_file", "text/html", "user123", mock_storage,Soup,mock_format,mock_add_page,mock_upload_attributes)
 
     mock_file.read.assert_called_once()
     mock_storage.bucket.assert_called_with("my_bucket")
-    my_bucket.blob.assert_called_with('pages/test_file')
+    my_bucket.blob.assert_called_with('pages/test_file/contents')
     my_blob.upload_from_string.assert_called_with('This is the contents of the uploaded file with ', content_type="text/html")
     assert result == 'This is the contents of the uploaded file with '
 
@@ -384,12 +389,12 @@ def test_scan_contents():
     ''' Tests the functionality of the scan_contents method.'''
     # Input values
     contents = 'This is a reference to Page 1. This is not a reference to Page 1. This is a reference to Page 2. This is not a reference page 3.'
-    pages = ['pages/Page 1', 'pages/Page 2','pages/Page 3']
+    pages = ['pages/Page 1/contents', 'pages/Page 2/contents','pages/Page 3/contents']
     backend = Backend()
 
     result = backend.scan_contents(contents,pages)
 
-    assert result == 'This is a reference to <a href="/page_results?current_page=pages/Page 1\">Page 1</a>. This is not a reference to Page 1. This is a reference to <a href="/page_results?current_page=pages/Page 2\">Page 2</a>. This is not a reference page 3.'
+    assert result == 'This is a reference to <a href="/page_results?current_page=pages/Page 1/contents\">Page 1</a>. This is not a reference to Page 1. This is a reference to <a href="/page_results?current_page=pages/Page 2/contents\">Page 2</a>. This is not a reference page 3.'
 
 
     
@@ -496,7 +501,81 @@ def test_get_pages_authored(mock_storage):
     mock_storage.bucket.assert_called_with('ama_users_passwords')
     my_bucket.blob.assert_called_with('user1234')
 
+@patch("google.cloud.storage.Client")
+def test_create_page_attributes(mock_storage):
+    ''' Tests if create_page_attributes() successfully uploads a json file as a blob
 
+    Tests if a blob is successfully uploaded by asserting if the methods are called with the expected parameters.
+    Removes google storage module and json dependencies.
+    '''
+    # Creates magic mocks
+    my_bucket = MagicMock()
+    my_blob = MagicMock()
+    mock_json = MagicMock()
+
+    # Sets return values for certain function calls
+    mock_storage.bucket.return_value = my_bucket
+    my_bucket.blob.return_value = my_blob
+    mock_json.dumps.return_value = "-author:alan,image_path:someimage.png-"
+
+    backend = Backend()
+
+    expected = "-author:alan,image_path:someimage.png-"
+
+    # Asserts if methods were called with specific values
+    backend.create_page_attributes('my_file','alan','someimage.png',mock_storage,mock_json)
+    mock_storage.bucket.assert_called_with('ama_wiki_content')
+    my_bucket.blob.assert_called_with('pages/my_file/attributes')
+    my_blob.upload_from_string.assert_called_with(expected,content_type='application/json')
+
+@patch("google.cloud.storage.Client")
+def test_get_page_attributes_success(mock_storage):
+    ''' Tests get_page_attributes()
+
+    Expects a successful retrieval of the json attributes file, converting json to a python dictionary and returning it.
+    Removing google storage and json dependencies.
+    '''
+    # Creates magic mocks
+    my_bucket = MagicMock()
+    my_blob = MagicMock()
+    mock_json = MagicMock()
+
+    backend = Backend()
+
+    expected = {'author':'alan'} # Expected dictionary to be returned
+
+    # Modify return values of mock operations
+    mock_storage.bucket.return_value = my_bucket
+    my_bucket.blob.return_value = my_blob
+    my_blob.open = mock_open(read_data="This does not matter")
+    my_blob.exists.return_value = True
+    mock_json.loads.return_value = expected
+    
+    assert expected == backend.get_page_attributes('my_file',mock_storage,mock_json)
+    mock_storage.bucket.assert_called_with('ama_wiki_content')
+    my_bucket.blob.assert_called_with('pages/my_file/attributes')
+
+@patch("google.cloud.storage.Client")
+def test_get_page_attributes_fail(mock_storage):
+    ''' Tests get_page_attributes()
+
+    Expects an unsuccessful retrieval of the json attributes file, returning None, because attributes does not exist.
+    Removing google storage and json dependencies.
+    '''
+    # Creates magic mocks
+    my_bucket = MagicMock()
+    my_blob = MagicMock()
+
+    backend = Backend()
+
+    # Modify return values of mock operations
+    mock_storage.bucket.return_value = my_bucket
+    my_bucket.blob.return_value = my_blob
+    my_blob.exists.return_value = False
+    
+    assert None == backend.get_page_attributes('my_file',mock_storage)
+    mock_storage.bucket.assert_called_with('ama_wiki_content')
+    my_bucket.blob.assert_called_with('pages/my_file/attributes')
 
 
 
